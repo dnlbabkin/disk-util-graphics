@@ -9,7 +9,7 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.drive.DriveScopes;
-import com.reliab.disktransfer.properties.GoogleAuthProperties;
+import com.reliab.disktransfer.configuration.properties.GoogleAuthProperties;
 import lombok.RequiredArgsConstructor;
 
 import java.awt.*;

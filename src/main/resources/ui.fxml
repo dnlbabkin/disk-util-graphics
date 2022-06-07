@@ -2,14 +2,19 @@
 
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.reliab.disktransfer.ui.UIController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0"
+            xmlns="http://javafx.com/javafx/18"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.reliab.disktransfer.ui.controller.UIController" fx:id="anchor">
    <children>
-      <Button fx:id="button" layoutX="269.0" layoutY="116.0" mnemonicParsing="false" text="Button" />
-      <Label fx:id="label" layoutX="282.0" layoutY="140.0" text="Label" />
-      <Button fx:id="google-auth" layoutX="223.0" layoutY="188.0" mnemonicParsing="false" text="Google authorization" />
-      <Button fx:id="yandex-auth" layoutX="222.0" layoutY="230.0" mnemonicParsing="false" text="Yandex authorization" />
-      <Button fx:id="transfer" layoutX="264.0" layoutY="272.0" mnemonicParsing="false" text="Transfer" />
+      <Button fx:id="googleauth" layoutX="231.0" layoutY="66.0" mnemonicParsing="false" text="Google authorization" />
+      <Button fx:id="yandexauth" layoutX="232.0" layoutY="101.0" mnemonicParsing="false" text="Yandex authorization" />
+      <Button fx:id="transfer" layoutX="212.0" layoutY="270.0" mnemonicParsing="false" prefHeight="68.0" prefWidth="177.0" text="Transfer" />
+      <Label layoutX="125.0" layoutY="172.0" text="Please choose directory for file transfer" />
+      <TextField fx:id="field" layoutX="125.0" layoutY="200.0" prefHeight="25.0" prefWidth="214.0" />
+      <Button fx:id="browse" layoutX="360.0" layoutY="180.0" mnemonicParsing="false" prefHeight="41.0" prefWidth="99.0" text="Browse" />
    </children>
 </AnchorPane>

@@ -1,4 +1,4 @@
-package com.reliab.disktransfer.properties;
+package com.reliab.disktransfer.configuration.properties;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
