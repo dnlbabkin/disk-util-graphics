@@ -99,18 +99,14 @@ public class AuthServiceImpl implements AuthService {
 
     private void uploadFiles(File fileIds, RestClient restClient) throws IOException, ServerException {
         Link link = restClient.getUploadLink(fileIds.getName(), true);
-        UIController controller = new UIController(null);
-//        restClient.uploadFile(link, true,
-//                new java.io.File("src/main/resources/tmp/", fileIds.getName()), null);
         String directory = getDirectory();
         restClient.uploadFile(link, true,
                 new java.io.File(directory, fileIds.getName()), null);
     }
 
     private void downloadFiles(File fileIds) throws IOException, GeneralSecurityException {
-//        OutputStream outputStream = new FileOutputStream("src/main/resources/tmp/" + fileIds.getName());
         String directory = getDirectory();
-        OutputStream outputStream = new FileOutputStream(directory + fileIds.getName());
+        OutputStream outputStream = new FileOutputStream(directory + "\\" + fileIds.getName());
         getDrive().files().get(fileIds.getId()).executeAndDownloadTo(outputStream);
     }
 
@@ -177,9 +173,8 @@ public class AuthServiceImpl implements AuthService {
 
             uploadFiles(fileIds, restClient);
 
-//            java.io.File deleteFile = new java.io.File("src/main/resources/tmp/", fileIds.getName());
             String directory = getDirectory();
-            java.io.File deleteFile = new java.io.File(directory, fileIds.getName());
+            java.io.File deleteFile = new java.io.File(directory + "\\", fileIds.getName());
             deleteFile.delete();
         }
     }

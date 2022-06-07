@@ -12,10 +12,7 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.security.GeneralSecurityException;
 
 @Component
@@ -65,10 +62,12 @@ public class UIController {
             }
 
             try {
-                PrintWriter writer = new PrintWriter("src/main/resources/directory/");
-                writer.println(directory + "/");
+                BufferedWriter writer = new BufferedWriter(new FileWriter("src/main/resources/directory/"));
+                writer.write(directory);
                 writer.close();
             } catch (FileNotFoundException e) {
+                throw new RuntimeException(e);
+            } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         });
