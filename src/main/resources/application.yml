@@ -1,0 +1,4 @@
+logging.level.org.springframework.web: DEBUG
+google-cred:
+  credFilePath: '/keys/client_secret_driveutil.json'
+  googleTokensDirPath: 'src/main/resources/google-tokens'
