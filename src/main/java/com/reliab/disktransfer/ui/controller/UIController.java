@@ -1,19 +1,16 @@
 package com.reliab.disktransfer.ui.controller;
 
 import com.reliab.disktransfer.service.AuthService;
-import com.yandex.disk.rest.exceptions.ServerException;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
-import java.security.GeneralSecurityException;
 
 @Component
 @RequiredArgsConstructor
@@ -37,16 +34,10 @@ public class UIController {
     public String directory;
 
     @FXML
-    public void initialize(){
-        this.googleauth.setOnAction(actionEvent -> {
-            try {
-                this.authService.getFiles();
-            } catch (GeneralSecurityException e) {
-                throw new RuntimeException(e);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
+    public void initialize() {
+        this.googleauth.setOnAction(actionEvent ->
+            this.authService.getFiles()
+        );
 
         this.yandexauth.setOnAction(actionEvent -> this.authService.browse());
 
@@ -65,23 +56,13 @@ public class UIController {
                 BufferedWriter writer = new BufferedWriter(new FileWriter("src/main/resources/directory/"));
                 writer.write(directory);
                 writer.close();
-            } catch (FileNotFoundException e) {
-                throw new RuntimeException(e);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         });
 
-        this.transfer.setOnAction(actionEvent -> {
-            try {
-                this.authService.fileTransfer();
-            } catch (GeneralSecurityException e) {
-                throw new RuntimeException(e);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            } catch (ServerException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        this.transfer.setOnAction(actionEvent ->
+            this.authService.fileTransfer()
+        );
     }
 }

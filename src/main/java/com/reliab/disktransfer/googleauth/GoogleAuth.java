@@ -11,11 +11,11 @@ import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.drive.DriveScopes;
 import com.reliab.disktransfer.configuration.properties.GoogleAuthProperties;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 
 import java.awt.*;
 import java.io.*;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
 
@@ -33,14 +33,13 @@ public class GoogleAuth implements AuthorizationCodeInstalledApp.Browser {
         extracted(url);
     }
 
+    @SneakyThrows
     private void extracted(String url) {
         System.setProperty("java.awt.headless", "false");
         Desktop desktop = Desktop.getDesktop();
         try {
             desktop.browse(new URI(url));
         } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
     }

@@ -6,20 +6,20 @@ import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
+import com.reliab.disktransfer.configuration.AuthConfig;
 import com.reliab.disktransfer.configuration.properties.GetTokenProperties;
 import com.reliab.disktransfer.dto.Token;
 import com.reliab.disktransfer.googleauth.GoogleAuth;
 import com.reliab.disktransfer.configuration.properties.GoogleAuthProperties;
 import com.reliab.disktransfer.service.AuthService;
-import com.reliab.disktransfer.ui.controller.UIController;
 import com.yandex.disk.rest.Credentials;
 import com.yandex.disk.rest.ResourcesArgs;
 import com.yandex.disk.rest.RestClient;
-import com.yandex.disk.rest.exceptions.ServerException;
-import com.yandex.disk.rest.exceptions.ServerIOException;
-import com.yandex.disk.rest.exceptions.WrongMethodException;
+import com.yandex.disk.rest.json.DiskInfo;
 import com.yandex.disk.rest.json.Link;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -27,32 +27,31 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestTemplate;
 
 import java.awt.*;
 import java.io.*;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.GeneralSecurityException;
+import java.nio.file.Paths;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
-    private final RestTemplate template;
+    private final RestTemplateBuilder builder;
+    private final AuthConfig config;
     private final GetTokenProperties properties;
     private final GoogleAuthProperties googleAuthProperties;
-    public UIController controller;
 
     private static final String APPLICATION_NAME = "Drive transfer utility";
     private static final GsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
 
 
-    private List<File> getFileList() throws IOException, GeneralSecurityException {
+    @SneakyThrows
+    private List<File> getFileList() {
         FileList result = getDrive().files().list()
                 .setFields("nextPageToken, files(id, name)")
                 .execute();
@@ -60,58 +59,62 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private ResponseEntity<Token> getTokenResponseEntity(HttpHeaders headers, MultiValueMap<String, String> body) {
-        HttpEntity<Map<String, String>> request = new HttpEntity(body, headers);
-        ResponseEntity<Token> response = template.postForEntity(properties.getTokenUrl(), request, Token.class);
-        return response;
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
+        return config.getTemplate(builder).postForEntity(properties.getTokenUrl(), request, Token.class);
     }
 
-    private Drive getDrive() throws GeneralSecurityException, IOException {
+    @SneakyThrows
+    private Drive getDrive() {
         GoogleAuth googleAuth = new GoogleAuth(googleAuthProperties);
         final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
-        Drive service = new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, googleAuth.getCredentials(HTTP_TRANSPORT))
+        return new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, googleAuth.getCredentials(HTTP_TRANSPORT))
                 .setApplicationName(APPLICATION_NAME)
                 .build();
-        return service;
     }
 
-    private void saveTokenToFile(String token) throws IOException {
+    @SneakyThrows
+    private void saveTokenToFile(String token) {
         PrintWriter writer = new PrintWriter(properties.getYandexTokensDirPath());
         writer.println(token);
         writer.close();
     }
 
-    private String getTokenFromFile() throws IOException {
+    @SneakyThrows
+    private String getTokenFromFile() {
         Path fileName = Path.of(properties.getYandexTokensDirPath());
         return Files.readString(fileName);
     }
 
-    private String getDirectory() throws IOException {
+    @SneakyThrows
+    private String getDirectory() {
         Path name = Path.of("src/main/resources/directory/");
         return Files.readString(name);
     }
 
-    private RestClient getRestClient() throws IOException {
+    private RestClient getRestClient() {
         String token = getTokenFromFile();
         Credentials credentials = new Credentials(null, token);
-        RestClient restClient = new RestClient(credentials);
-        return restClient;
+        return new RestClient(credentials);
     }
 
-    private void uploadFiles(File fileIds, RestClient restClient) throws IOException, ServerException {
+    @SneakyThrows
+    private void uploadFiles(File fileIds, RestClient restClient) {
         Link link = restClient.getUploadLink(fileIds.getName(), true);
         String directory = getDirectory();
         restClient.uploadFile(link, true,
                 new java.io.File(directory, fileIds.getName()), null);
     }
 
-    private void downloadFiles(File fileIds) throws IOException, GeneralSecurityException {
+    @SneakyThrows
+    private void downloadFiles(File fileIds) {
         String directory = getDirectory();
         OutputStream outputStream = new FileOutputStream(directory + "\\" + fileIds.getName());
         getDrive().files().get(fileIds.getId()).executeAndDownloadTo(outputStream);
     }
 
+    @SneakyThrows
     @Override
-    public RestClient getToken(String code) throws IOException, ServerIOException {
+    public DiskInfo getToken(String code) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
@@ -122,21 +125,19 @@ public class AuthServiceImpl implements AuthService {
 
         ResponseEntity<Token> response = getTokenResponseEntity(headers, body);
 
-        String token = response.getBody().getAccessToken();
+        String token = Objects.requireNonNull(response.getBody()).getAccessToken();
         saveTokenToFile(token);
-        String tokenFromFile = getTokenFromFile();
 
-        Credentials credentials = new Credentials(null, tokenFromFile);
-
-        RestClient restClient = new RestClient(credentials);
+        RestClient restClient = getRestClient();
         ResourcesArgs builder = new ResourcesArgs.Builder().build();
         System.out.println(restClient.getFlatResourceList(builder));
 
-        return new RestClient(credentials);
+        return restClient.getDiskInfo();
     }
 
+    @SneakyThrows
     @Override
-    public com.google.api.services.drive.model.Drive getFiles() throws GeneralSecurityException, IOException {
+    public void getFiles() {
         Drive service = getDrive();
 
         FileList result = service.files().list()
@@ -147,24 +148,19 @@ public class AuthServiceImpl implements AuthService {
         for (File file : files) {
             System.out.printf("%s (%s)\n", file.getName(), file.getId());
         }
-        return null;
     }
 
+    @SneakyThrows
     @Override
     public void browse() {
         System.setProperty("java.awt.headless", "false");
         Desktop desktop = Desktop.getDesktop();
-        try {
-            desktop.browse(new URI(properties.getRedirectUri()));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
-        }
+        desktop.browse(new URI(properties.getRedirectUri()));
     }
 
+    @SneakyThrows
     @Override
-    public void fileTransfer() throws GeneralSecurityException, IOException, ServerException {
+    public void fileTransfer() {
         List<File> fileId = getFileList();
         for(File fileIds : fileId) {
             downloadFiles(fileIds);
@@ -174,8 +170,8 @@ public class AuthServiceImpl implements AuthService {
             uploadFiles(fileIds, restClient);
 
             String directory = getDirectory();
-            java.io.File deleteFile = new java.io.File(directory + "\\", fileIds.getName());
-            deleteFile.delete();
+            Thread.sleep(500);
+            Files.deleteIfExists(Paths.get(directory + "\\", fileIds.getName()));
         }
     }
 }
