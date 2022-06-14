@@ -15,6 +15,10 @@ public class JavafxApplication extends Application {
 
     private ConfigurableApplicationContext context;
 
+    public void browser(String url) {
+        getHostServices().showDocument(url);
+    }
+
     @Override
     public void init() {
         ApplicationContextInitializer<GenericApplicationContext> initializer =

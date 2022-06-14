@@ -10,12 +10,10 @@ import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.drive.DriveScopes;
 import com.reliab.disktransfer.configuration.properties.GoogleAuthProperties;
+import com.reliab.disktransfer.ui.JavafxApplication;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 
-import java.awt.*;
 import java.io.*;
-import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 
@@ -27,21 +25,10 @@ public class GoogleAuth implements AuthorizationCodeInstalledApp.Browser {
 
     private final GoogleAuthProperties properties;
 
-
     @Override
     public void browse(String url)  {
-        extracted(url);
-    }
-
-    @SneakyThrows
-    private void extracted(String url) {
-        System.setProperty("java.awt.headless", "false");
-        Desktop desktop = Desktop.getDesktop();
-        try {
-            desktop.browse(new URI(url));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        JavafxApplication javafxApplication = new JavafxApplication();
+        javafxApplication.browser(url);
     }
 
     public Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT) throws IOException {

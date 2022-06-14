@@ -1,9 +1,9 @@
 package com.reliab.disktransfer.ui.controller;
 
 import com.reliab.disktransfer.service.AuthService;
+import javafx.concurrent.WorkerStateEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
@@ -30,6 +30,12 @@ public class UIController {
     public Button browse;
     @FXML
     public AnchorPane anchor;
+    @FXML
+    public final ProgressBar progressBar = new ProgressBar(0);
+    @FXML
+    public Label complete;
+    @FXML
+    public Button cancel;
 
     public String directory;
 
@@ -61,8 +67,27 @@ public class UIController {
             }
         });
 
-        this.transfer.setOnAction(actionEvent ->
-            this.authService.fileTransfer()
-        );
+        this.transfer.setOnAction(actionEvent -> {
+            transfer.setDisable(true);
+            progressBar.setProgress(0);
+            progressBar.progressProperty().unbind();
+            progressBar.progressProperty().bind(authService.progressProperty());
+            authService.addEventHandler(WorkerStateEvent.WORKER_STATE_SUCCEEDED,
+                    event -> {
+                complete.textProperty().unbind();
+                complete.setText("Complete");
+            });
+            new Thread(authService).start();
+        });
+
+        this.cancel.setOnAction(actionEvent -> {
+            transfer.setDisable(false);
+            cancel.setDisable(true);
+            authService.cancel(true);
+            progressBar.progressProperty().unbind();
+            complete.textProperty().unbind();
+
+            progressBar.setProgress(0);
+        });
     }
 }
