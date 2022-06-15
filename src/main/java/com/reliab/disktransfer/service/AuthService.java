@@ -153,28 +153,23 @@ public class AuthService extends Task<List<File>> {
         javafxApplication.browser(properties.getRedirectUri());
     }
 
-//    @SneakyThrows
-//    public void fileTransfer() {
-//        List<File> fileId = getFileList();
-//        for(File fileIds : fileId) {
-//            downloadFiles(fileIds);
-//
-//            RestClient restClient = getRestClient();
-//
-//            uploadFiles(fileIds, restClient);
-//        }
-//    }
-
     @SneakyThrows
     @Override
     public List<File> call() {
         List<File> fileId = getFileList();
+
+        int count = fileId.size();
+        int i = 0;
+
         for(File fileIds : fileId) {
             downloadFiles(fileIds);
 
             RestClient restClient = getRestClient();
 
             uploadFiles(fileIds, restClient);
+
+            i++;
+            this.updateProgress(i, count);
         }
 
         return fileId;
