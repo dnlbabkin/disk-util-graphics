@@ -20,6 +20,7 @@ import com.yandex.disk.rest.json.Link;
 import javafx.concurrent.Task;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -35,6 +36,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService extends Task<List<File>> {
@@ -104,6 +106,12 @@ public class AuthService extends Task<List<File>> {
     }
 
     @SneakyThrows
+    private void createFolder() {
+        RestClient restClient = getRestClient();
+        restClient.makeFolder("Google drive");
+    }
+
+    @SneakyThrows
     private void downloadFiles(File fileIds) {
         String directory = getDirectory();
         OutputStream outputStream = new FileOutputStream(directory + "/" + fileIds.getName());
@@ -111,23 +119,37 @@ public class AuthService extends Task<List<File>> {
     }
 
     @SneakyThrows
-    public DiskInfo getToken(String code) {
+    private RestClient getClient() {
+        RestClient restClient = getRestClient();
+        ResourcesArgs builder = new ResourcesArgs.Builder().build();
+        log.info(String.valueOf(restClient.getFlatResourceList(builder)));
+        return restClient;
+    }
+
+    private void setHeaders(String code) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("grant_type", "authorization_code");
         body.add("code", code);
         body.add("client_id", properties.getClientId());
-        body.add("client_secret", properties.getClientSecrets());
+        body.add("client_secret", properties.getClientSecret());
 
+        getTokenFromFile(headers, body);
+    }
+
+    private void getTokenFromFile(HttpHeaders headers, MultiValueMap<String, String> body) {
         ResponseEntity<Token> response = getTokenResponseEntity(headers, body);
 
         String token = Objects.requireNonNull(response.getBody()).getAccessToken();
         saveTokenToFile(token);
+    }
 
-        RestClient restClient = getRestClient();
-        ResourcesArgs builder = new ResourcesArgs.Builder().build();
-        System.out.println(restClient.getFlatResourceList(builder));
+    @SneakyThrows
+    public DiskInfo getToken(String code) {
+        setHeaders(code);
+
+        RestClient restClient = getClient();
 
         return restClient.getDiskInfo();
     }
@@ -140,9 +162,9 @@ public class AuthService extends Task<List<File>> {
                 .setFields("nextPageToken, files(id, name)")
                 .execute();
         List<File> files = result.getFiles();
-        System.out.println("Files: ");
+        log.info("Files: ");
         for (File file : files) {
-            System.out.printf("%s (%s)\n", file.getName(), file.getId());
+            log.info(file.getName(), file.getId());
         }
     }
 
@@ -161,6 +183,7 @@ public class AuthService extends Task<List<File>> {
         int count = fileId.size();
         int i = 0;
 
+        createFolder();
         for(File fileIds : fileId) {
             downloadFiles(fileIds);
 

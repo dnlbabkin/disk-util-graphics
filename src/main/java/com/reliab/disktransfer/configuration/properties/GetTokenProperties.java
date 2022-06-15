@@ -7,7 +7,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "yandex-body")
 public class GetTokenProperties {
     private String clientId;
-    private String clientSecrets;
+    private String clientSecret;
     private String tokenUrl;
     private String redirectUri;
     private String yandexTokensDirPath;
