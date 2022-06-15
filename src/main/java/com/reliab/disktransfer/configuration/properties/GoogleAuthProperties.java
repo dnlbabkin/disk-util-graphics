@@ -8,4 +8,5 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class GoogleAuthProperties {
     private String credFilePath;
     private String googleTokensDirPath;
+    private String downloadFolderName;
 }

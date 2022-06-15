@@ -60,14 +60,16 @@ public class AuthService extends Task<List<File>> {
 
     private ResponseEntity<Token> getTokenResponseEntity(HttpHeaders headers, MultiValueMap<String, String> body) {
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
-        return config.getTemplate(builder).postForEntity(properties.getTokenUrl(), request, Token.class);
+        return config.getTemplate(builder)
+                .postForEntity(properties.getTokenUrl(), request, Token.class);
     }
 
     @SneakyThrows
     private Drive getDrive() {
         GoogleAuth googleAuth = new GoogleAuth(googleAuthProperties);
         final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
-        return new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, googleAuth.getCredentials(HTTP_TRANSPORT))
+        return new Drive.Builder(HTTP_TRANSPORT,
+                JSON_FACTORY, googleAuth.getCredentials(HTTP_TRANSPORT))
                 .setApplicationName(APPLICATION_NAME)
                 .build();
     }
@@ -108,14 +110,26 @@ public class AuthService extends Task<List<File>> {
     @SneakyThrows
     private void createFolder() {
         RestClient restClient = getRestClient();
-        restClient.makeFolder("Google drive");
+        restClient.makeFolder(googleAuthProperties.getDownloadFolderName());
     }
 
     @SneakyThrows
     private void downloadFiles(File fileIds) {
         String directory = getDirectory();
-        OutputStream outputStream = new FileOutputStream(directory + "/" + fileIds.getName());
-        getDrive().files().get(fileIds.getId()).executeAndDownloadTo(outputStream);
+        OutputStream outputStream = new FileOutputStream(directory +
+                "/" + fileIds.getName());
+        getDrive().files().get(fileIds.getId())
+                .executeAndDownloadTo(outputStream);
+    }
+
+    @SneakyThrows
+    private void fileOperations(File fileIds) {
+        downloadFiles(fileIds);
+        RestClient restClient = getRestClient();
+        uploadFiles(fileIds, restClient);
+        restClient.move(fileIds.getName(),
+                googleAuthProperties.getDownloadFolderName()
+                        + "/" + fileIds.getName(), true);
     }
 
     @SneakyThrows
@@ -126,9 +140,8 @@ public class AuthService extends Task<List<File>> {
         return restClient;
     }
 
-    private void setHeaders(String code) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+    private void setBody(String code) {
+        HttpHeaders headers = getHttpHeaders();
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("grant_type", "authorization_code");
         body.add("code", code);
@@ -136,6 +149,12 @@ public class AuthService extends Task<List<File>> {
         body.add("client_secret", properties.getClientSecret());
 
         getTokenFromFile(headers, body);
+    }
+
+    private HttpHeaders getHttpHeaders() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        return headers;
     }
 
     private void getTokenFromFile(HttpHeaders headers, MultiValueMap<String, String> body) {
@@ -147,7 +166,7 @@ public class AuthService extends Task<List<File>> {
 
     @SneakyThrows
     public DiskInfo getToken(String code) {
-        setHeaders(code);
+        setBody(code);
 
         RestClient restClient = getClient();
 
@@ -185,11 +204,7 @@ public class AuthService extends Task<List<File>> {
 
         createFolder();
         for(File fileIds : fileId) {
-            downloadFiles(fileIds);
-
-            RestClient restClient = getRestClient();
-
-            uploadFiles(fileIds, restClient);
+            fileOperations(fileIds);
 
             i++;
             this.updateProgress(i, count);

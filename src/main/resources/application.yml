@@ -1,6 +1,7 @@
 google-cred:
   credFilePath: '/keys/client_secret_driveutil.json'
   googleTokensDirPath: 'src/main/resources/google-tokens'
+  downloadFolderName: 'Google drive'
 yandex-body:
   clientId: '017c21efe04649d5970324b2e3b6bf5f'
   clientSecrets: '938214f05945429d95de65db833f21ce'
