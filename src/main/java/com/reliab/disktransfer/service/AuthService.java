@@ -21,7 +21,6 @@ import javafx.concurrent.Task;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -41,8 +40,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class AuthService extends Task<List<File>> {
 
-    private final RestTemplateBuilder builder;
-    private final AuthConfig config;
+    private final AuthConfig template;
     private final GetTokenProperties properties;
     private final GoogleAuthProperties googleAuthProperties;
 
@@ -60,7 +58,7 @@ public class AuthService extends Task<List<File>> {
 
     private ResponseEntity<Token> getTokenResponseEntity(HttpHeaders headers, MultiValueMap<String, String> body) {
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
-        return config.getTemplate(builder)
+        return template.getTemplate()
                 .postForEntity(properties.getTokenUrl(), request, Token.class);
     }
 

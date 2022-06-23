@@ -1,15 +1,15 @@
 package com.reliab.disktransfer.ui;
 
 import com.reliab.disktransfer.DiskTransferApplication;
+import com.reliab.disktransfer.ui.controller.GoogleAuthController;
 import javafx.application.Application;
-import javafx.application.HostServices;
 import javafx.application.Platform;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.stage.Stage;
+import net.rgielen.fxweaver.core.FxWeaver;
 import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.context.ApplicationContextInitializer;
-import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.support.GenericApplicationContext;
 
 public class JavafxApplication extends Application {
 
@@ -21,36 +21,25 @@ public class JavafxApplication extends Application {
 
     @Override
     public void init() {
-        ApplicationContextInitializer<GenericApplicationContext> initializer =
-                ac -> {
-                    ac.registerBean(Application.class, () -> JavafxApplication.this);
-                    ac.registerBean(Parameters.class, this::getParameters);
-                    ac.registerBean(HostServices.class, this::getHostServices);
-                };
+        String[] args = getParameters().getRaw().toArray(new String[0]);
+
         this.context = new SpringApplicationBuilder()
                 .sources(DiskTransferApplication.class)
-                .initializers(initializer)
-                .run(getParameters().getRaw().toArray(new String[0]));
+                .run(args);
     }
 
     @Override
     public void start(Stage stage) {
-        this.context.publishEvent(new StageReadyEvent(stage));
+        FxWeaver fxWeaver = context.getBean(FxWeaver.class);
+        Parent root = fxWeaver.loadView(GoogleAuthController.class);
+        Scene scene = new Scene(root, 513, 243);
+        stage.setScene(scene);
+        stage.show();
     }
 
     @Override
     public void stop() {
         this.context.close();
         Platform.exit();
-    }
-}
-
-class StageReadyEvent extends ApplicationEvent {
-    public Stage getStage(){
-        return (Stage) getSource();
-    }
-
-    public StageReadyEvent(Stage source) {
-        super(source);
     }
 }
