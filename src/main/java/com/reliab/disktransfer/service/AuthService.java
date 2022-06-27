@@ -187,7 +187,6 @@ public class AuthService extends Task<List<File>> {
 
     @SneakyThrows
     public void browse() {
-        System.setProperty("java.awt.headless", "false");
         JavafxApplication javafxApplication = new JavafxApplication();
         javafxApplication.browser(properties.getRedirectUri());
     }
