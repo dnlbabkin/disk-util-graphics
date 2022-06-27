@@ -1,6 +1,5 @@
 package com.reliab.disktransfer.ui.controller;
 
-import com.reliab.disktransfer.service.AuthService;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
