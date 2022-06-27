@@ -20,33 +20,31 @@ public class FxPages {
 
     private final ConfigurableApplicationContext context;
 
+    private static final int WIDTH = 0;
+    private static final int HEIGHT = 0;
+
     @SneakyThrows
-    public void switchToYandexAuthPage(ActionEvent actionEvent) {
+    private void sceneCreation(ActionEvent actionEvent, Class<?> controllerClass) {
         FxWeaver fxWeaver = context.getBean(FxWeaver.class);
-        Parent root = fxWeaver.loadView(YandexAuthController.class);
+        Parent root = fxWeaver.loadView(controllerClass);
         Stage stage = (Stage) ((Node) actionEvent.getSource()).getScene().getWindow();
-        Scene scene = new Scene(root, 513, 243);
+        Scene scene = new Scene(root, WIDTH, HEIGHT);
         stage.setScene(scene);
         stage.show();
+    }
+
+    @SneakyThrows
+    public void switchToYandexAuthPage(ActionEvent actionEvent) {
+        sceneCreation(actionEvent, YandexAuthController.class);
     }
 
     @SneakyThrows
     public void switchToDirectoryChooser(ActionEvent actionEvent) {
-        FxWeaver fxWeaver = context.getBean(FxWeaver.class);
-        Parent root = fxWeaver.loadView(DirectoryChooserController.class);
-        Stage stage = (Stage) ((Node) actionEvent.getSource()).getScene().getWindow();
-        Scene scene = new Scene(root, 513, 243);
-        stage.setScene(scene);
-        stage.show();
+        sceneCreation(actionEvent, DirectoryChooserController.class);
     }
 
     @SneakyThrows
     public void switchToTransfer(ActionEvent actionEvent) {
-        FxWeaver fxWeaver = context.getBean(FxWeaver.class);
-        Parent root = fxWeaver.loadView(TransferController.class);
-        Stage stage = (Stage) ((Node) actionEvent.getSource()).getScene().getWindow();
-        Scene scene = new Scene(root, 513, 243);
-        stage.setScene(scene);
-        stage.show();
+        sceneCreation(actionEvent, TransferController.class);
     }
 }

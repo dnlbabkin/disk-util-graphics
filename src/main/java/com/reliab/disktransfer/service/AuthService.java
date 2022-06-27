@@ -7,10 +7,10 @@ import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
 import com.reliab.disktransfer.configuration.RestTemplateConfig;
-import com.reliab.disktransfer.configuration.properties.GetTokenProperties;
+import com.reliab.disktransfer.configuration.properties.YandexProperties;
 import com.reliab.disktransfer.dto.Token;
 import com.reliab.disktransfer.googleauth.GoogleAuth;
-import com.reliab.disktransfer.configuration.properties.GoogleAuthProperties;
+import com.reliab.disktransfer.configuration.properties.GoogleProperties;
 import com.reliab.disktransfer.ui.JavafxApplication;
 import com.yandex.disk.rest.Credentials;
 import com.yandex.disk.rest.ResourcesArgs;
@@ -41,10 +41,9 @@ import java.util.Objects;
 public class AuthService extends Task<List<File>> {
 
     private final RestTemplateConfig template;
-    private final GetTokenProperties properties;
-    private final GoogleAuthProperties googleAuthProperties;
+    private final YandexProperties yandexAuthProperties;
+    private final GoogleProperties googleAuthProperties;
 
-    private static final String APPLICATION_NAME = "Drive transfer utility";
     private static final GsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
 
 
@@ -59,7 +58,7 @@ public class AuthService extends Task<List<File>> {
     private ResponseEntity<Token> getTokenResponseEntity(HttpHeaders headers, MultiValueMap<String, String> body) {
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
         return template.getTemplate()
-                .postForEntity(properties.getTokenUrl(), request, Token.class);
+                .postForEntity(yandexAuthProperties.getTokenUrl(), request, Token.class);
     }
 
     @SneakyThrows
@@ -68,20 +67,20 @@ public class AuthService extends Task<List<File>> {
         final NetHttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
         return new Drive.Builder(httpTransport,
                 JSON_FACTORY, googleAuth.getCredentials(httpTransport))
-                .setApplicationName(APPLICATION_NAME)
+                .setApplicationName(googleAuthProperties.getApplicationName())
                 .build();
     }
 
     @SneakyThrows
     private void saveToFile(String token) {
-        PrintWriter writer = new PrintWriter(properties.getYandexTokensDirPath());
+        PrintWriter writer = new PrintWriter(yandexAuthProperties.getYandexTokensDirPath());
         writer.println(token);
         writer.close();
     }
 
     @SneakyThrows
     private String getTokenFromFile() {
-        Path fileName = Path.of(properties.getYandexTokensDirPath());
+        Path fileName = Path.of(yandexAuthProperties.getYandexTokensDirPath());
         return Files.readString(fileName);
     }
 
@@ -143,8 +142,8 @@ public class AuthService extends Task<List<File>> {
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("grant_type", "authorization_code");
         body.add("code", code);
-        body.add("client_id", properties.getClientId());
-        body.add("client_secret", properties.getClientSecret());
+        body.add("client_id", yandexAuthProperties.getClientId());
+        body.add("client_secret", yandexAuthProperties.getClientSecret());
 
         saveTokenToFile(headers, body);
     }
@@ -188,7 +187,7 @@ public class AuthService extends Task<List<File>> {
     @SneakyThrows
     public void browse() {
         JavafxApplication javafxApplication = new JavafxApplication();
-        javafxApplication.browser(properties.getRedirectUri());
+        javafxApplication.browser(yandexAuthProperties.getRedirectUri());
     }
 
     @SneakyThrows

@@ -9,7 +9,7 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.drive.DriveScopes;
-import com.reliab.disktransfer.configuration.properties.GoogleAuthProperties;
+import com.reliab.disktransfer.configuration.properties.GoogleProperties;
 import com.reliab.disktransfer.ui.JavafxApplication;
 import lombok.RequiredArgsConstructor;
 
@@ -23,7 +23,7 @@ public class GoogleAuth implements AuthorizationCodeInstalledApp.Browser {
     private static final GsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
     private static final List<String> SCOPES = Collections.singletonList(DriveScopes.DRIVE);
 
-    private final GoogleAuthProperties properties;
+    private final GoogleProperties properties;
 
     @Override
     public void browse(String url)  {

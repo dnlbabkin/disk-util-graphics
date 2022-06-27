@@ -12,12 +12,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/callback")
 @RequiredArgsConstructor
-public class AuthController {
+public class AccessTokenController {
 
     private final AuthService authService;
 
-    @GetMapping("/token")
-    public DiskInfo startPage(@RequestParam String code) {
+    @GetMapping("/yandex/token")
+    public DiskInfo getAccessToken(@RequestParam String code) {
         return authService.getToken(code);
     }
 }
