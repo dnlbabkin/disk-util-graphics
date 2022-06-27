@@ -1,10 +1,7 @@
 package com.reliab.disktransfer.ui.controller;
 
-import javafx.event.ActionEvent;
+import com.reliab.disktransfer.FxPages;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
@@ -13,9 +10,7 @@ import javafx.stage.Stage;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import net.rgielen.fxweaver.core.FxWeaver;
 import net.rgielen.fxweaver.core.FxmlView;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedWriter;
@@ -28,9 +23,9 @@ import java.io.FileWriter;
 @RequiredArgsConstructor
 public class DirectoryChooserController {
 
-    private final ConfigurableApplicationContext context;
+    private final FxPages pages;
 
-    public String directory;
+    private String directory;
 
     @FXML
     public TextField field;
@@ -39,15 +34,6 @@ public class DirectoryChooserController {
     @FXML
     public AnchorPane anchor;
 
-    @SneakyThrows
-    private void switchToTransfer(ActionEvent actionEvent) {
-        FxWeaver fxWeaver = context.getBean(FxWeaver.class);
-        Parent root = fxWeaver.loadView(TransferController.class);
-        Stage stage = (Stage) ((Node) actionEvent.getSource()).getScene().getWindow();
-        Scene scene = new Scene(root, 513, 243);
-        stage.setScene(scene);
-        stage.show();
-    }
 
     @SneakyThrows
     private void chooseFile() {
@@ -71,7 +57,7 @@ public class DirectoryChooserController {
     public void initialize() {
         this.browse.setOnAction(actionEvent -> {
             chooseFile();
-            switchToTransfer(actionEvent);
+           pages.switchToTransfer(actionEvent);
         });
     }
 }

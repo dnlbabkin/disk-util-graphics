@@ -6,7 +6,7 @@ import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
-import com.reliab.disktransfer.configuration.AuthConfig;
+import com.reliab.disktransfer.configuration.RestTemplateConfig;
 import com.reliab.disktransfer.configuration.properties.GetTokenProperties;
 import com.reliab.disktransfer.dto.Token;
 import com.reliab.disktransfer.googleauth.GoogleAuth;
@@ -21,7 +21,6 @@ import javafx.concurrent.Task;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -41,8 +40,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class AuthService extends Task<List<File>> {
 
-    private final AuthConfig template;
-    private final RestTemplateBuilder builder;
+    private final RestTemplateConfig template;
     private final GetTokenProperties properties;
     private final GoogleAuthProperties googleAuthProperties;
 
@@ -60,22 +58,22 @@ public class AuthService extends Task<List<File>> {
 
     private ResponseEntity<Token> getTokenResponseEntity(HttpHeaders headers, MultiValueMap<String, String> body) {
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
-        return template.getTemplate(builder)
+        return template.getTemplate()
                 .postForEntity(properties.getTokenUrl(), request, Token.class);
     }
 
     @SneakyThrows
     private Drive getDrive() {
         GoogleAuth googleAuth = new GoogleAuth(googleAuthProperties);
-        final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
-        return new Drive.Builder(HTTP_TRANSPORT,
-                JSON_FACTORY, googleAuth.getCredentials(HTTP_TRANSPORT))
+        final NetHttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
+        return new Drive.Builder(httpTransport,
+                JSON_FACTORY, googleAuth.getCredentials(httpTransport))
                 .setApplicationName(APPLICATION_NAME)
                 .build();
     }
 
     @SneakyThrows
-    private void saveTokenToFile(String token) {
+    private void saveToFile(String token) {
         PrintWriter writer = new PrintWriter(properties.getYandexTokensDirPath());
         writer.println(token);
         writer.close();
@@ -148,7 +146,7 @@ public class AuthService extends Task<List<File>> {
         body.add("client_id", properties.getClientId());
         body.add("client_secret", properties.getClientSecret());
 
-        getTokenFromFile(headers, body);
+        saveTokenToFile(headers, body);
     }
 
     private HttpHeaders getHttpHeaders() {
@@ -157,11 +155,11 @@ public class AuthService extends Task<List<File>> {
         return headers;
     }
 
-    private void getTokenFromFile(HttpHeaders headers, MultiValueMap<String, String> body) {
+    private void saveTokenToFile(HttpHeaders headers, MultiValueMap<String, String> body) {
         ResponseEntity<Token> response = getTokenResponseEntity(headers, body);
 
         String token = Objects.requireNonNull(response.getBody()).getAccessToken();
-        saveTokenToFile(token);
+        saveToFile(token);
     }
 
     @SneakyThrows

@@ -8,3 +8,15 @@ yandex-body:
   tokenUrl: 'https://oauth.yandex.ru/token'
   redirectUri: 'https://oauth.yandex.ru/authorize?response_type=code&client_id=017c21efe04649d5970324b2e3b6bf5f'
   yandexTokensDirPath: 'src/main/resources/yandex-tokens/'
+
+server:
+  port: 8090
+spring:
+  application:
+    ui:
+      title: 'Disk Transfer App'
+logging:
+  level:
+    org:
+      springframework:
+        web: DEBUG

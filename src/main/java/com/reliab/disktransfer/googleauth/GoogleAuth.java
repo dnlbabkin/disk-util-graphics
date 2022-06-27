@@ -31,7 +31,7 @@ public class GoogleAuth implements AuthorizationCodeInstalledApp.Browser {
         javafxApplication.browser(url);
     }
 
-    public Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT) throws IOException {
+    public Credential getCredentials(final NetHttpTransport httpTransport) throws IOException {
         InputStream inputStream = GoogleAuth.class.getResourceAsStream(properties.getCredFilePath());
         if (inputStream == null) {
             throw new FileNotFoundException("Resourse not found: " + properties.getCredFilePath());
@@ -39,12 +39,11 @@ public class GoogleAuth implements AuthorizationCodeInstalledApp.Browser {
 
         GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(inputStream));
         GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
-                HTTP_TRANSPORT, JSON_FACTORY, clientSecrets, SCOPES)
+                httpTransport, JSON_FACTORY, clientSecrets, SCOPES)
                 .setDataStoreFactory(new FileDataStoreFactory(new File(properties.getGoogleTokensDirPath())))
                 .setAccessType("offline")
                 .build();
         LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();
-
 
         return new AuthorizationCodeInstalledApp(flow, receiver, this).authorize("user");
     }
