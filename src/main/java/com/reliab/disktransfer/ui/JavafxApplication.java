@@ -12,7 +12,6 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 
 public class JavafxApplication extends Application {
-
     private ConfigurableApplicationContext context;
 
     public void browser(String url) {
@@ -34,6 +33,7 @@ public class JavafxApplication extends Application {
         Parent root = fxWeaver.loadView(GoogleAuthController.class);
         Scene scene = new Scene(root, 513, 243);
         stage.setScene(scene);
+        stage.setTitle("Disk Transfer App");
         stage.show();
     }
 
