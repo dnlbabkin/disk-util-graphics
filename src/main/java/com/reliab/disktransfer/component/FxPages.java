@@ -1,4 +1,4 @@
-package com.reliab.disktransfer;
+package com.reliab.disktransfer.component;
 
 import com.reliab.disktransfer.ui.controller.DirectoryChooserController;
 import com.reliab.disktransfer.ui.controller.TransferController;

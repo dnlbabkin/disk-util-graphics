@@ -1,6 +1,6 @@
 package com.reliab.disktransfer.ui.controller;
 
-import com.reliab.disktransfer.FxPages;
+import com.reliab.disktransfer.component.FxPages;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
