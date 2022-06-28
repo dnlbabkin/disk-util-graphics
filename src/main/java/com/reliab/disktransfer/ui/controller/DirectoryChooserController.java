@@ -1,6 +1,6 @@
 package com.reliab.disktransfer.ui.controller;
 
-import com.reliab.disktransfer.component.FxPages;
+import com.reliab.disktransfer.component.SceneCreation;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
@@ -8,7 +8,6 @@ import javafx.scene.layout.AnchorPane;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import net.rgielen.fxweaver.core.FxmlView;
 import org.springframework.stereotype.Component;
@@ -16,6 +15,7 @@ import org.springframework.stereotype.Component;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 
 @Slf4j
 @Component
@@ -23,7 +23,7 @@ import java.io.FileWriter;
 @RequiredArgsConstructor
 public class DirectoryChooserController {
 
-    private final FxPages pages;
+    private final SceneCreation pages;
 
     private String directory;
 
@@ -35,7 +35,6 @@ public class DirectoryChooserController {
     public AnchorPane anchor;
 
 
-    @SneakyThrows
     private void chooseFile() {
         final DirectoryChooser chooser = new DirectoryChooser();
         Stage window = (Stage) anchor.getScene().getWindow();
@@ -47,12 +46,13 @@ public class DirectoryChooserController {
             field.setText(directory);
         }
 
-        BufferedWriter writer = new BufferedWriter(new FileWriter("src/main/resources/directory/"));
-        writer.write(directory);
-        writer.close();
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("src/main/resources/directory/"))){
+            writer.write(directory);
+        } catch (IOException e) {
+            throw new SecurityException(e);
+        }
     }
 
-    @SneakyThrows
     @FXML
     public void initialize() {
         this.browse.setOnAction(actionEvent -> {

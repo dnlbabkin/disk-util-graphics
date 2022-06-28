@@ -15,6 +15,8 @@ import com.reliab.disktransfer.ui.JavafxApplication;
 import com.yandex.disk.rest.Credentials;
 import com.yandex.disk.rest.ResourcesArgs;
 import com.yandex.disk.rest.RestClient;
+import com.yandex.disk.rest.exceptions.ServerException;
+import com.yandex.disk.rest.exceptions.ServerIOException;
 import com.yandex.disk.rest.json.DiskInfo;
 import com.yandex.disk.rest.json.Link;
 import javafx.concurrent.Task;
@@ -32,6 +34,7 @@ import org.springframework.util.MultiValueMap;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.Objects;
 
@@ -45,9 +48,10 @@ public class AuthService extends Task<List<File>> {
     private final GoogleProperties googleAuthProperties;
 
     private static final GsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
+    private static final ResourcesArgs RESOURCES_ARGS = new ResourcesArgs.Builder().build();
 
 
-    @SneakyThrows
+    @SneakyThrows(IOException.class)
     private List<File> getFileList() {
         FileList result = getDrive().files().list()
                 .setFields("nextPageToken, files(id, name)")
@@ -55,39 +59,36 @@ public class AuthService extends Task<List<File>> {
         return result.getFiles();
     }
 
-    private ResponseEntity<Token> getTokenResponseEntity(HttpHeaders headers, MultiValueMap<String, String> body) {
-        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
-        return template.getTemplate()
-                .postForEntity(yandexAuthProperties.getTokenUrl(), request, Token.class);
-    }
-
-    @SneakyThrows
     private Drive getDrive() {
         GoogleAuth googleAuth = new GoogleAuth(googleAuthProperties);
-        final NetHttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
+        final NetHttpTransport httpTransport;
+        try {
+            httpTransport = GoogleNetHttpTransport.newTrustedTransport();
+        } catch (GeneralSecurityException | IOException e) {
+            throw new SecurityException(e);
+        }
         return new Drive.Builder(httpTransport,
                 JSON_FACTORY, googleAuth.getCredentials(httpTransport))
                 .setApplicationName(googleAuthProperties.getApplicationName())
                 .build();
     }
 
-    @SneakyThrows
-    private void saveToFile(String token) {
-        PrintWriter writer = new PrintWriter(yandexAuthProperties.getYandexTokensDirPath());
-        writer.println(token);
-        writer.close();
-    }
-
-    @SneakyThrows
     private String getTokenFromFile() {
         Path fileName = Path.of(yandexAuthProperties.getYandexTokensDirPath());
-        return Files.readString(fileName);
+        try {
+            return Files.readString(fileName);
+        } catch (IOException e) {
+            throw new SecurityException(e);
+        }
     }
 
-    @SneakyThrows
     private String getDirectory() {
         Path name = Path.of("src/main/resources/directory/");
-        return Files.readString(name);
+        try {
+            return Files.readString(name);
+        } catch (IOException e) {
+            throw new SecurityException(e);
+        }
     }
 
     private RestClient getRestClient() {
@@ -96,54 +97,68 @@ public class AuthService extends Task<List<File>> {
         return new RestClient(credentials);
     }
 
-    @SneakyThrows
     private void uploadFiles(File fileIds, RestClient restClient) {
-        Link link = restClient.getUploadLink(fileIds.getName(), true);
-        String directory = getDirectory();
-        restClient.uploadFile(link, true,
-                new java.io.File(directory, fileIds.getName()), null);
+        try {
+            Link link = restClient.getUploadLink(fileIds.getName(), true);
+
+            String directory = getDirectory();
+
+            restClient.uploadFile(link, true,
+                    new java.io.File(directory, fileIds.getName()), null);
+        } catch (ServerException | IOException e) {
+            throw new SecurityException(e);
+        }
     }
 
-    @SneakyThrows
     private void createFolder() {
         RestClient restClient = getRestClient();
-        restClient.makeFolder(googleAuthProperties.getDownloadFolderName());
+        try {
+            restClient.makeFolder(googleAuthProperties.getDownloadFolderName());
+        } catch (ServerIOException | IOException e) {
+            throw new SecurityException(e);
+        }
     }
 
-    @SneakyThrows
+    @SneakyThrows(FileNotFoundException.class)
     private void downloadFiles(File fileIds) {
         String directory = getDirectory();
         OutputStream outputStream = new FileOutputStream(directory +
                 "/" + fileIds.getName());
-        getDrive().files().get(fileIds.getId())
-                .executeAndDownloadTo(outputStream);
+        try {
+            getDrive().files().get(fileIds.getId())
+                    .executeAndDownloadTo(outputStream);
+        } catch (IOException e) {
+            throw new SecurityException(e);
+        }
     }
 
-    @SneakyThrows
     private void fileOperations(File fileIds) {
         downloadFiles(fileIds);
         RestClient restClient = getRestClient();
         uploadFiles(fileIds, restClient);
-        restClient.move(fileIds.getName(),
-                googleAuthProperties.getDownloadFolderName()
-                        + "/" + fileIds.getName(), true);
+        try {
+            restClient.move(fileIds.getName(),
+                    googleAuthProperties.getDownloadFolderName()
+                            + "/" + fileIds.getName(), true);
+        } catch (Exception e) {
+            throw new SecurityException(e);
+        }
     }
 
-    @SneakyThrows
     private RestClient getClient() {
         RestClient restClient = getRestClient();
-        ResourcesArgs builder = new ResourcesArgs.Builder().build();
-        log.info(String.valueOf(restClient.getFlatResourceList(builder)));
+        try {
+            log.info(String.valueOf(restClient.getFlatResourceList(RESOURCES_ARGS)));
+        } catch (Exception e) {
+            throw new SecurityException(e);
+        }
+
         return restClient;
     }
 
     private void setBody(String code) {
         HttpHeaders headers = getHttpHeaders();
-        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-        body.add("grant_type", "authorization_code");
-        body.add("code", code);
-        body.add("client_id", yandexAuthProperties.getClientId());
-        body.add("client_secret", yandexAuthProperties.getClientSecret());
+        MultiValueMap<String, String> body = getStringMultiValueMap(code);
 
         saveTokenToFile(headers, body);
     }
@@ -154,6 +169,32 @@ public class AuthService extends Task<List<File>> {
         return headers;
     }
 
+    private void saveToFile(String token) {
+        try (PrintWriter writer = new PrintWriter(yandexAuthProperties
+                .getYandexTokensDirPath())) {
+            writer.println(token);
+        } catch (FileNotFoundException e) {
+            throw new SecurityException(e);
+        }
+    }
+
+    private ResponseEntity<Token> getTokenResponseEntity(HttpHeaders headers,
+                                                         MultiValueMap<String, String> body) {
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
+        return template.getTemplate()
+                .postForEntity(yandexAuthProperties.getTokenUrl(), request, Token.class);
+    }
+
+    private MultiValueMap<String, String> getStringMultiValueMap(String code) {
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        body.add("grant_type", "authorization_code");
+        body.add("code", code);
+        body.add("client_id", yandexAuthProperties.getClientId());
+        body.add("client_secret", yandexAuthProperties.getClientSecret());
+
+        return body;
+    }
+
     private void saveTokenToFile(HttpHeaders headers, MultiValueMap<String, String> body) {
         ResponseEntity<Token> response = getTokenResponseEntity(headers, body);
 
@@ -161,36 +202,42 @@ public class AuthService extends Task<List<File>> {
         saveToFile(token);
     }
 
-    @SneakyThrows
+
     public DiskInfo getToken(String code) {
         setBody(code);
 
         RestClient restClient = getClient();
 
-        return restClient.getDiskInfo();
-    }
-
-    @SneakyThrows
-    public void getFiles() {
-        Drive service = getDrive();
-
-        FileList result = service.files().list()
-                .setFields("nextPageToken, files(id, name)")
-                .execute();
-        List<File> files = result.getFiles();
-        log.info("Files: ");
-        for (File file : files) {
-            log.info(file.getName(), file.getId());
+        try {
+            return restClient.getDiskInfo();
+        } catch (Exception e) {
+            throw new SecurityException(e);
         }
     }
 
-    @SneakyThrows
+    public void getFileListFromGoogleDrive() {
+        try {
+            Drive service = getDrive();
+
+            FileList result = service.files().list()
+                    .setFields("nextPageToken, files(id, name)")
+                    .execute();
+
+            List<File> files = result.getFiles();
+            log.info("Files: ");
+            for (File file : files) {
+                log.info(file.getName(), file.getId());
+            }
+        } catch (IOException e) {
+            throw new SecurityException(e);
+        }
+    }
+
     public void browse() {
         JavafxApplication javafxApplication = new JavafxApplication();
         javafxApplication.browser(yandexAuthProperties.getRedirectUri());
     }
 
-    @SneakyThrows
     @Override
     public List<File> call() {
         List<File> fileId = getFileList();
@@ -199,7 +246,7 @@ public class AuthService extends Task<List<File>> {
         int i = 0;
 
         createFolder();
-        for(File fileIds : fileId) {
+        for (File fileIds : fileId) {
             fileOperations(fileIds);
 
             i++;

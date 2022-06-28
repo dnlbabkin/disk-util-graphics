@@ -12,6 +12,7 @@ import com.google.api.services.drive.DriveScopes;
 import com.reliab.disktransfer.configuration.properties.GoogleProperties;
 import com.reliab.disktransfer.ui.JavafxApplication;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 
 import java.io.*;
 import java.util.Collections;
@@ -26,25 +27,30 @@ public class GoogleAuth implements AuthorizationCodeInstalledApp.Browser {
     private final GoogleProperties properties;
 
     @Override
-    public void browse(String url)  {
+    public void browse(String url) {
         JavafxApplication javafxApplication = new JavafxApplication();
         javafxApplication.browser(url);
     }
 
-    public Credential getCredentials(final NetHttpTransport httpTransport) throws IOException {
+    @SneakyThrows(FileNotFoundException.class)
+    public Credential getCredentials(final NetHttpTransport httpTransport) {
         InputStream inputStream = GoogleAuth.class.getResourceAsStream(properties.getCredFilePath());
         if (inputStream == null) {
             throw new FileNotFoundException("Resourse not found: " + properties.getCredFilePath());
         }
+        try {
+            GoogleClientSecrets clientSecrets =  GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(inputStream));
 
-        GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(inputStream));
-        GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
-                httpTransport, JSON_FACTORY, clientSecrets, SCOPES)
-                .setDataStoreFactory(new FileDataStoreFactory(new File(properties.getGoogleTokensDirPath())))
-                .setAccessType("offline")
-                .build();
-        LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();
+            GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
+                    httpTransport, JSON_FACTORY, clientSecrets, SCOPES)
+                    .setDataStoreFactory(new FileDataStoreFactory(new File(properties.getGoogleTokensDirPath())))
+                    .setAccessType("offline")
+                    .build();
+            LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();
 
-        return new AuthorizationCodeInstalledApp(flow, receiver, this).authorize("user");
+            return new AuthorizationCodeInstalledApp(flow, receiver, this).authorize("user");
+        } catch (IOException e) {
+            throw new SecurityException(e);
+        }
     }
 }

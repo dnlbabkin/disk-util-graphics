@@ -12,6 +12,7 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 
 public class JavafxApplication extends Application {
+
     private ConfigurableApplicationContext context;
 
     public void browser(String url) {

@@ -1,3 +1,11 @@
+server:
+  port: 8090
+logging:
+  level:
+    org:
+      springframework:
+        web: DEBUG
+
 google:
   credFilePath: '/keys/client_secret_driveutil.json'
   googleTokensDirPath: 'src/main/resources/google-tokens'
@@ -9,11 +17,3 @@ yandex:
   tokenUrl: 'https://oauth.yandex.ru/token'
   redirectUri: 'https://oauth.yandex.ru/authorize?response_type=code&client_id=017c21efe04649d5970324b2e3b6bf5f'
   yandexTokensDirPath: 'src/main/resources/yandex-tokens/'
-
-server:
-  port: 8090
-logging:
-  level:
-    org:
-      springframework:
-        web: DEBUG

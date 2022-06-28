@@ -8,7 +8,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import net.rgielen.fxweaver.core.FxmlView;
 import org.springframework.stereotype.Component;
 
@@ -43,7 +42,6 @@ public class TransferController {
         new Thread(authService).start();
     }
 
-    @SneakyThrows
     @FXML
     public void initialize() {
         this.transfer.setOnAction(actionEvent -> fileTransfer());
