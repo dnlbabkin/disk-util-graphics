@@ -1,6 +1,6 @@
 package com.reliab.disktransfer.controller;
 
-import com.reliab.disktransfer.service.AuthService;
+import com.reliab.disktransfer.service.YandexAuthService;
 import com.yandex.disk.rest.json.DiskInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,10 +14,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AccessTokenController {
 
-    private final AuthService authService;
+    private final YandexAuthService yandexAuthService;
 
     @GetMapping("/yandex/token")
     public DiskInfo getAccessToken(@RequestParam String code) {
-        return authService.getToken(code);
+        return yandexAuthService.getToken(code);
     }
 }

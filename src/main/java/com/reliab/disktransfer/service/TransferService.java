@@ -6,49 +6,35 @@ import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
-import com.reliab.disktransfer.configuration.RestTemplateConfig;
 import com.reliab.disktransfer.configuration.properties.YandexProperties;
-import com.reliab.disktransfer.dto.Token;
 import com.reliab.disktransfer.googleauth.GoogleAuth;
 import com.reliab.disktransfer.configuration.properties.GoogleProperties;
-import com.reliab.disktransfer.ui.JavafxApplication;
 import com.yandex.disk.rest.Credentials;
-import com.yandex.disk.rest.ResourcesArgs;
 import com.yandex.disk.rest.RestClient;
 import com.yandex.disk.rest.exceptions.ServerException;
 import com.yandex.disk.rest.exceptions.ServerIOException;
-import com.yandex.disk.rest.json.DiskInfo;
 import com.yandex.disk.rest.json.Link;
 import javafx.concurrent.Task;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.GeneralSecurityException;
 import java.util.List;
-import java.util.Objects;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class AuthService extends Task<List<File>> {
+public class TransferService extends Task<List<File>> {
 
-    private final RestTemplateConfig template;
     private final YandexProperties yandexAuthProperties;
     private final GoogleProperties googleAuthProperties;
 
     private static final GsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
-    private static final ResourcesArgs RESOURCES_ARGS = new ResourcesArgs.Builder().build();
 
 
     @SneakyThrows(IOException.class)
@@ -143,99 +129,6 @@ public class AuthService extends Task<List<File>> {
         } catch (Exception e) {
             throw new SecurityException(e);
         }
-    }
-
-    private RestClient getClient() {
-        RestClient restClient = getRestClient();
-        try {
-            log.info(String.valueOf(restClient.getFlatResourceList(RESOURCES_ARGS)));
-        } catch (Exception e) {
-            throw new SecurityException(e);
-        }
-
-        return restClient;
-    }
-
-    private void setBody(String code) {
-        HttpHeaders headers = getHttpHeaders();
-        MultiValueMap<String, String> body = getStringMultiValueMap(code);
-
-        saveTokenToFile(headers, body);
-    }
-
-    private HttpHeaders getHttpHeaders() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        return headers;
-    }
-
-    private void saveToFile(String token) {
-        try (PrintWriter writer = new PrintWriter(yandexAuthProperties
-                .getYandexTokensDirPath())) {
-            writer.println(token);
-        } catch (FileNotFoundException e) {
-            throw new SecurityException(e);
-        }
-    }
-
-    private ResponseEntity<Token> getTokenResponseEntity(HttpHeaders headers,
-                                                         MultiValueMap<String, String> body) {
-        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
-        return template.getTemplate()
-                .postForEntity(yandexAuthProperties.getTokenUrl(), request, Token.class);
-    }
-
-    private MultiValueMap<String, String> getStringMultiValueMap(String code) {
-        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-        body.add("grant_type", "authorization_code");
-        body.add("code", code);
-        body.add("client_id", yandexAuthProperties.getClientId());
-        body.add("client_secret", yandexAuthProperties.getClientSecret());
-
-        return body;
-    }
-
-    private void saveTokenToFile(HttpHeaders headers, MultiValueMap<String, String> body) {
-        ResponseEntity<Token> response = getTokenResponseEntity(headers, body);
-
-        String token = Objects.requireNonNull(response.getBody()).getAccessToken();
-        saveToFile(token);
-    }
-
-
-    public DiskInfo getToken(String code) {
-        setBody(code);
-
-        RestClient restClient = getClient();
-
-        try {
-            return restClient.getDiskInfo();
-        } catch (Exception e) {
-            throw new SecurityException(e);
-        }
-    }
-
-    public void getFileListFromGoogleDrive() {
-        try {
-            Drive service = getDrive();
-
-            FileList result = service.files().list()
-                    .setFields("nextPageToken, files(id, name)")
-                    .execute();
-
-            List<File> files = result.getFiles();
-            log.info("Files: ");
-            for (File file : files) {
-                log.info(file.getName(), file.getId());
-            }
-        } catch (IOException e) {
-            throw new SecurityException(e);
-        }
-    }
-
-    public void browse() {
-        JavafxApplication javafxApplication = new JavafxApplication();
-        javafxApplication.browser(yandexAuthProperties.getRedirectUri());
     }
 
     @Override

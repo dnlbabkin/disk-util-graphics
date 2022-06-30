@@ -1,7 +1,7 @@
 package com.reliab.disktransfer.ui.controller;
 
 import com.reliab.disktransfer.component.SceneCreation;
-import com.reliab.disktransfer.service.AuthService;
+import com.reliab.disktransfer.service.YandexAuthService;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class YandexAuthController {
 
-    private final AuthService authService;
+    private final YandexAuthService yandexAuthService;
     private final SceneCreation pages;
 
     @FXML
@@ -22,7 +22,7 @@ public class YandexAuthController {
     @FXML
     public void initialize() {
         this.yandexAuth.setOnAction(actionEvent -> {
-            this.authService.browse();
+            this.yandexAuthService.browse();
             pages.switchToDirectoryChooser(actionEvent);
         });
     }

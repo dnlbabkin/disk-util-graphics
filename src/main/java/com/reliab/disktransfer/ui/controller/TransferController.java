@@ -1,7 +1,7 @@
 package com.reliab.disktransfer.ui.controller;
 
 import com.google.api.services.drive.model.File;
-import com.reliab.disktransfer.service.AuthService;
+import com.reliab.disktransfer.service.TransferService;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -18,7 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TransferController {
 
-    private final AuthService authService;
+    private final TransferService transferService;
 
     @FXML
     public ProgressBar progressBar;
@@ -29,17 +29,17 @@ public class TransferController {
 
     private void fileTransfer() {
         progressBar.progressProperty().unbind();
-        progressBar.progressProperty().bind(authService.progressProperty());
+        progressBar.progressProperty().bind(transferService.progressProperty());
 
-        complete.textProperty().bind(authService.messageProperty());
+        complete.textProperty().bind(transferService.messageProperty());
 
-        authService.addEventHandler(WorkerStateEvent.WORKER_STATE_SUCCEEDED,
+        transferService.addEventHandler(WorkerStateEvent.WORKER_STATE_SUCCEEDED,
                 event -> {
-                    List<File> downloaded = authService.getValue();
+                    List<File> downloaded = transferService.getValue();
                     complete.textProperty().unbind();
                     complete.setText("Выполнено: " + downloaded.size());
                 });
-        new Thread(authService).start();
+        new Thread(transferService).start();
     }
 
     @FXML
