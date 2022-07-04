@@ -25,6 +25,7 @@
 		<google.oauth.client.version>1.33.3</google.oauth.client.version>
 		<google.oauth.client.jetty.version>1.33.3</google.oauth.client.jetty.version>
 		<google.api.services.drive.version>v3-rev197-1.25.0</google.api.services.drive.version>
+		<spring.devtools.version>2.7.1</spring.devtools.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -103,11 +104,10 @@
 			<version>${google.api.services.drive.version}</version>
 		</dependency>
 
-		<!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-devtools -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-devtools</artifactId>
-			<version>2.7.1</version>
+			<version>${spring.devtools.version}</version>
 		</dependency>
 
 	</dependencies>
