@@ -9,6 +9,7 @@ import com.google.api.services.drive.model.FileList;
 import com.reliab.disktransfer.configuration.properties.GoogleProperties;
 import com.reliab.disktransfer.googleauth.GoogleAuth;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -25,14 +26,11 @@ public class GoogleAuthService {
 
     private static final GsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
 
+    @SneakyThrows({GeneralSecurityException.class, IOException.class})
     private Drive getDrive() {
         GoogleAuth googleAuth = new GoogleAuth(googleAuthProperties);
         final NetHttpTransport httpTransport;
-        try {
-            httpTransport = GoogleNetHttpTransport.newTrustedTransport();
-        } catch (GeneralSecurityException | IOException e) {
-            throw new SecurityException(e);
-        }
+        httpTransport = GoogleNetHttpTransport.newTrustedTransport();
         return new Drive.Builder(httpTransport,
                 JSON_FACTORY, googleAuth.getCredentials(httpTransport))
                 .setApplicationName(googleAuthProperties.getApplicationName())

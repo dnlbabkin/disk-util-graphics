@@ -12,5 +12,4 @@ public class DiskTransferApplication {
 	public static void main(String[] args) {
 		Application.launch(JavafxApplication.class, args);
 	}
-
 }

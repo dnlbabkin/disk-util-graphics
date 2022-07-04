@@ -1,6 +1,6 @@
 package com.reliab.disktransfer.ui.controller;
 
-import com.reliab.disktransfer.component.SceneCreation;
+import com.reliab.disktransfer.component.SceneCreator;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
@@ -23,7 +23,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class DirectoryChooserController {
 
-    private final SceneCreation pages;
+    private final SceneCreator pages;
 
     private String directory;
 
@@ -49,7 +49,7 @@ public class DirectoryChooserController {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter("src/main/resources/directory/"))){
             writer.write(directory);
         } catch (IOException e) {
-            throw new SecurityException(e);
+            log.warn("Directory cannot write to file");
         }
     }
 

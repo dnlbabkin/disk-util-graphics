@@ -1,6 +1,6 @@
 package com.reliab.disktransfer.ui.controller;
 
-import com.reliab.disktransfer.component.SceneCreation;
+import com.reliab.disktransfer.component.SceneCreator;
 import com.reliab.disktransfer.service.GoogleAuthService;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 public class GoogleAuthController {
 
     private final GoogleAuthService googleAuthService;
-    private final SceneCreation pages;
+    private final SceneCreator pages;
 
     @FXML
     public Button googleAuth;

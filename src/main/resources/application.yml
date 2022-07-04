@@ -5,6 +5,8 @@ logging:
     org:
       springframework:
         web: DEBUG
+  file:
+    path: src/main/resources/logs
 
 google:
   credFilePath: '/keys/client_secret_driveutil.json'

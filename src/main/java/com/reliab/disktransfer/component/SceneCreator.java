@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class SceneCreation {
+public class SceneCreator {
 
     private final ConfigurableApplicationContext context;
 

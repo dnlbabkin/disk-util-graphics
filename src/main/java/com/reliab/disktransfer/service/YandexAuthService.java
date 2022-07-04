@@ -1,36 +1,41 @@
 package com.reliab.disktransfer.service;
 
-import com.reliab.disktransfer.configuration.RestTemplateConfig;
 import com.reliab.disktransfer.configuration.properties.YandexProperties;
 import com.reliab.disktransfer.dto.Token;
 import com.reliab.disktransfer.ui.JavafxApplication;
 import com.yandex.disk.rest.Credentials;
 import com.yandex.disk.rest.ResourcesArgs;
 import com.yandex.disk.rest.RestClient;
-import com.yandex.disk.rest.json.DiskInfo;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Objects;
+import java.util.Optional;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class YandexAuthService {
 
-    private final RestTemplateConfig template;
+    private final RestTemplate template;
     private final YandexProperties yandexAuthProperties;
+
+    public YandexAuthService(@Qualifier("yandexRestTemplate") RestTemplate template,
+                             YandexProperties yandexAuthProperties) {
+        this.template = template;
+        this.yandexAuthProperties = yandexAuthProperties;
+    }
 
     private static final ResourcesArgs RESOURCES_ARGS = new ResourcesArgs.Builder().build();
 
@@ -40,8 +45,9 @@ public class YandexAuthService {
         try {
             return Files.readString(fileName);
         } catch (IOException e) {
-            throw new SecurityException(e);
+            log.warn("Cannot read data from file");
         }
+        return null;
     }
 
     private RestClient getRestClient() {
@@ -50,19 +56,19 @@ public class YandexAuthService {
         return new RestClient(credentials);
     }
 
-    private RestClient getClient() {
+    private void getClient() {
         RestClient restClient = getRestClient();
         try {
             log.info(String.valueOf(restClient.getFlatResourceList(RESOURCES_ARGS)));
         } catch (Exception e) {
-            throw new SecurityException(e);
+            log.warn("Cannot create client");
         }
-
-        return restClient;
     }
 
-    private void saveTokenToFile(String code) {
-        String token = Objects.requireNonNull(setRequestParameters(code).getBody()).getAccessToken();
+    private void tokenProcessing(String code) {
+        String token = Optional.ofNullable(setRequestParameters(code)
+                        .getBody()).map(Token::getAccessToken).orElseThrow(
+                                () -> new NullPointerException("Null"));
         saveToFile(token);
     }
 
@@ -71,15 +77,15 @@ public class YandexAuthService {
                 .getYandexTokensDirPath())) {
             writer.println(token);
         } catch (FileNotFoundException e) {
-            throw new SecurityException(e);
+            log.warn("Cannot find file");
         }
     }
 
     private ResponseEntity<Token> getTokenResponseEntity(HttpHeaders headers,
                                                          MultiValueMap<String, String> body) {
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
-        return template.restTemplate()
-                .postForEntity(yandexAuthProperties.getTokenUrl(), request, Token.class);
+        return template.
+                postForEntity(yandexAuthProperties.getTokenUrl(), request, Token.class);
     }
 
     private MultiValueMap<String, String> getStringMultiValueMap(String code) {
@@ -93,8 +99,10 @@ public class YandexAuthService {
     }
 
     private ResponseEntity<Token> setRequestParameters(String code) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         MultiValueMap<String, String> body = getStringMultiValueMap(code);
-        return getTokenResponseEntity(template.httpHeaders(), body);
+        return getTokenResponseEntity(headers, body);
     }
 
     public void browse() {
@@ -102,15 +110,8 @@ public class YandexAuthService {
         javafxApplication.browser(yandexAuthProperties.getRedirectUri());
     }
 
-    public DiskInfo getToken(String code) {
-        saveTokenToFile(code);
-
-        RestClient restClient = getClient();
-
-        try {
-            return restClient.getDiskInfo();
-        } catch (Exception e) {
-            throw new SecurityException(e);
-        }
+    public void handleToken(String code) {
+        tokenProcessing(code);
+        getClient();
     }
 }

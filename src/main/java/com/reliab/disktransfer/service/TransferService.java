@@ -45,14 +45,10 @@ public class TransferService extends Task<List<File>> {
         return result.getFiles();
     }
 
+    @SneakyThrows({GeneralSecurityException.class, IOException.class})
     private Drive getDrive() {
         GoogleAuth googleAuth = new GoogleAuth(googleAuthProperties);
-        final NetHttpTransport httpTransport;
-        try {
-            httpTransport = GoogleNetHttpTransport.newTrustedTransport();
-        } catch (GeneralSecurityException | IOException e) {
-            throw new SecurityException(e);
-        }
+        final NetHttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
         return new Drive.Builder(httpTransport,
                 JSON_FACTORY, googleAuth.getCredentials(httpTransport))
                 .setApplicationName(googleAuthProperties.getApplicationName())
@@ -64,8 +60,9 @@ public class TransferService extends Task<List<File>> {
         try {
             return Files.readString(fileName);
         } catch (IOException e) {
-            throw new SecurityException(e);
+            log.warn("Cannot read data from file", e);
         }
+        return null;
     }
 
     private String getDirectory() {
@@ -73,8 +70,10 @@ public class TransferService extends Task<List<File>> {
         try {
             return Files.readString(name);
         } catch (IOException e) {
-            throw new SecurityException(e);
+            log.warn("Cannot read directory");
         }
+
+        return null;
     }
 
     private RestClient getRestClient() {
@@ -92,7 +91,7 @@ public class TransferService extends Task<List<File>> {
             restClient.uploadFile(link, true,
                     new java.io.File(directory, fileIds.getName()), null);
         } catch (ServerException | IOException e) {
-            throw new SecurityException(e);
+            log.warn("Cannot upload link or upload file");
         }
     }
 
@@ -101,20 +100,17 @@ public class TransferService extends Task<List<File>> {
         try {
             restClient.makeFolder(googleAuthProperties.getDownloadFolderName());
         } catch (ServerIOException | IOException e) {
-            throw new SecurityException(e);
+            log.warn("Cannot create folder");
         }
     }
 
-    @SneakyThrows(FileNotFoundException.class)
     private void downloadFiles(File fileIds) {
         String directory = getDirectory();
-        OutputStream outputStream = new FileOutputStream(directory +
-                "/" + fileIds.getName());
-        try {
+        try(OutputStream outputStream = new FileOutputStream(directory + "/" + fileIds.getName())) {
             getDrive().files().get(fileIds.getId())
                     .executeAndDownloadTo(outputStream);
         } catch (IOException e) {
-            throw new SecurityException(e);
+            log.warn("Cannot download files");
         }
     }
 
@@ -127,7 +123,17 @@ public class TransferService extends Task<List<File>> {
                     googleAuthProperties.getDownloadFolderName()
                             + "/" + fileIds.getName(), true);
         } catch (Exception e) {
-            throw new SecurityException(e);
+            log.warn("Cannot move file to a directory");
+        }
+    }
+
+    private void transferringFiles(File file) {
+        this.updateMessage("Переносится: " + file.getName());
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            log.warn("Interrupted!", e);
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -140,6 +146,7 @@ public class TransferService extends Task<List<File>> {
 
         createFolder();
         for (File fileIds : fileId) {
+            this.transferringFiles(fileIds);
             fileOperations(fileIds);
 
             i++;
