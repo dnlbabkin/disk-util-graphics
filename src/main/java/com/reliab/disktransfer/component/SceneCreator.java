@@ -10,21 +10,19 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import lombok.RequiredArgsConstructor;
 import net.rgielen.fxweaver.core.FxWeaver;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
 public class SceneCreator {
 
-    private final ConfigurableApplicationContext context;
+    private final FxWeaver fxWeaver;
 
     private static final int WIDTH = 513;
     private static final int HEIGHT = 243;
 
 
     private void sceneCreation(ActionEvent actionEvent, Class<?> controllerClass) {
-        FxWeaver fxWeaver = context.getBean(FxWeaver.class);
         Parent root = fxWeaver.loadView(controllerClass);
         Stage stage = (Stage) ((Node) actionEvent.getSource()).getScene().getWindow();
         Scene scene = new Scene(root, WIDTH, HEIGHT);

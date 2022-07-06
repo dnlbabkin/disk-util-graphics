@@ -2,6 +2,7 @@ package com.reliab.disktransfer.service;
 
 import com.reliab.disktransfer.configuration.properties.YandexProperties;
 import com.reliab.disktransfer.dto.Token;
+import com.reliab.disktransfer.exception.TokenProcessingException;
 import com.reliab.disktransfer.ui.JavafxApplication;
 import com.yandex.disk.rest.Credentials;
 import com.yandex.disk.rest.ResourcesArgs;
@@ -31,14 +32,15 @@ public class YandexAuthService {
     private final RestTemplate template;
     private final YandexProperties yandexAuthProperties;
 
+    private static final ResourcesArgs RESOURCES_ARGS = new ResourcesArgs.Builder().build();
+
+    private RestClient restClient;
+
     public YandexAuthService(@Qualifier("yandexRestTemplate") RestTemplate template,
                              YandexProperties yandexAuthProperties) {
         this.template = template;
         this.yandexAuthProperties = yandexAuthProperties;
     }
-
-    private static final ResourcesArgs RESOURCES_ARGS = new ResourcesArgs.Builder().build();
-
 
     private String getTokenFromFile() {
         Path fileName = Path.of(yandexAuthProperties.getYandexTokensDirPath());
@@ -47,17 +49,19 @@ public class YandexAuthService {
         } catch (IOException e) {
             log.warn("Cannot read data from file");
         }
+
         return null;
     }
 
     private RestClient getRestClient() {
         String token = getTokenFromFile();
         Credentials credentials = new Credentials(null, token);
-        return new RestClient(credentials);
+        restClient = new RestClient(credentials);
+        return restClient;
     }
 
-    private void getClient() {
-        RestClient restClient = getRestClient();
+    private void logging() {
+        restClient = getRestClient();
         try {
             log.info(String.valueOf(restClient.getFlatResourceList(RESOURCES_ARGS)));
         } catch (Exception e) {
@@ -66,9 +70,10 @@ public class YandexAuthService {
     }
 
     private void tokenProcessing(String code) {
-        String token = Optional.ofNullable(setRequestParameters(code)
-                        .getBody()).map(Token::getAccessToken).orElseThrow(
-                                () -> new NullPointerException("Null"));
+        String token = exchangeCodeToToken(code)
+                .map(Token::getAccessToken)
+                .orElseThrow(() -> new TokenProcessingException("Not token")
+                );
         saveToFile(token);
     }
 
@@ -81,14 +86,13 @@ public class YandexAuthService {
         }
     }
 
-    private ResponseEntity<Token> getTokenResponseEntity(HttpHeaders headers,
-                                                         MultiValueMap<String, String> body) {
-        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
-        return template.
-                postForEntity(yandexAuthProperties.getTokenUrl(), request, Token.class);
+    private HttpHeaders createHeaders() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        return headers;
     }
 
-    private MultiValueMap<String, String> getStringMultiValueMap(String code) {
+    private MultiValueMap<String, String> createBody(String code) {
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("grant_type", "authorization_code");
         body.add("code", code);
@@ -98,11 +102,15 @@ public class YandexAuthService {
         return body;
     }
 
-    private ResponseEntity<Token> setRequestParameters(String code) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        MultiValueMap<String, String> body = getStringMultiValueMap(code);
-        return getTokenResponseEntity(headers, body);
+    private Optional<Token> exchangeCodeToToken(String code) {
+        HttpHeaders headers = createHeaders();
+        MultiValueMap<String, String> body = createBody(code);
+        ResponseEntity<Token> responseEntity = template.postForEntity(
+                yandexAuthProperties.getTokenUrl(),
+                new HttpEntity<>(body, headers),
+                Token.class
+        );
+        return Optional.ofNullable(responseEntity.getBody());
     }
 
     public void browse() {
@@ -112,6 +120,6 @@ public class YandexAuthService {
 
     public void handleToken(String code) {
         tokenProcessing(code);
-        getClient();
+        logging();
     }
 }

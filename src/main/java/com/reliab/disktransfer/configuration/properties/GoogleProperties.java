@@ -9,5 +9,5 @@ public class GoogleProperties {
     private String credFilePath;
     private String googleTokensDirPath;
     private String downloadFolderName;
-    private String applicationName;
+    private String googleAppName;
 }

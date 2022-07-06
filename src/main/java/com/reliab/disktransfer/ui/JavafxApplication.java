@@ -15,6 +15,9 @@ public class JavafxApplication extends Application {
 
     private ConfigurableApplicationContext context;
 
+    private static final int WIDTH = 513;
+    private static final int HEIGHT = 243;
+
     public void browser(String url) {
         getHostServices().showDocument(url);
     }
@@ -32,7 +35,7 @@ public class JavafxApplication extends Application {
     public void start(Stage stage) {
         FxWeaver fxWeaver = context.getBean(FxWeaver.class);
         Parent root = fxWeaver.loadView(GoogleAuthController.class);
-        Scene scene = new Scene(root, 513, 243);
+        Scene scene = new Scene(root, WIDTH, HEIGHT);
         stage.setScene(scene);
         stage.setTitle("Disk Transfer App");
         stage.show();

@@ -33,7 +33,7 @@ public class GoogleAuthService {
         httpTransport = GoogleNetHttpTransport.newTrustedTransport();
         return new Drive.Builder(httpTransport,
                 JSON_FACTORY, googleAuth.getCredentials(httpTransport))
-                .setApplicationName(googleAuthProperties.getApplicationName())
+                .setApplicationName(googleAuthProperties.getGoogleAppName())
                 .build();
     }
 
