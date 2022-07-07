@@ -37,21 +37,17 @@ public class GoogleAuthService {
                 .build();
     }
 
+    @SneakyThrows(IOException.class)
+    private List<File> getFileList() {
+        FileList result = getDrive().files().list()
+                .setFields("nextPageToken, files(id, name)")
+                .execute();
+        return result.getFiles();
+    }
+
     public void getFileListFromGoogleDrive() {
-        try {
-            Drive service = getDrive();
-
-            FileList result = service.files().list()
-                    .setFields("nextPageToken, files(id, name)")
-                    .execute();
-
-            List<File> files = result.getFiles();
-            log.info("Files: ");
-            for (File file : files) {
-                log.info(file.getName(), file.getId());
-            }
-        } catch (IOException e) {
-            throw new SecurityException(e);
-        }
+        List<File> files = getFileList();
+        log.info("Files: ");
+        files.forEach(file -> log.info(file.getName(), file.getId()));
     }
 }

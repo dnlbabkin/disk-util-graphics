@@ -32,25 +32,21 @@ public class GoogleAuth implements AuthorizationCodeInstalledApp.Browser {
         javafxApplication.browser(url);
     }
 
-    @SneakyThrows(FileNotFoundException.class)
+    @SneakyThrows({FileNotFoundException.class, IOException.class})
     public Credential getCredentials(final NetHttpTransport httpTransport) {
         InputStream inputStream = GoogleAuth.class.getResourceAsStream(properties.getCredFilePath());
         if (inputStream == null) {
             throw new FileNotFoundException("Resourse not found: " + properties.getCredFilePath());
         }
-        try {
-            GoogleClientSecrets clientSecrets =  GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(inputStream));
+        GoogleClientSecrets clientSecrets =  GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(inputStream));
 
-            GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
-                    httpTransport, JSON_FACTORY, clientSecrets, SCOPES)
-                    .setDataStoreFactory(new FileDataStoreFactory(new File(properties.getGoogleTokensDirPath())))
-                    .setAccessType("offline")
-                    .build();
-            LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();
+        GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
+                httpTransport, JSON_FACTORY, clientSecrets, SCOPES)
+                .setDataStoreFactory(new FileDataStoreFactory(new File(properties.getGoogleTokensDirPath())))
+                .setAccessType("offline")
+                .build();
+        LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();
 
-            return new AuthorizationCodeInstalledApp(flow, receiver, this).authorize("user");
-        } catch (IOException e) {
-            throw new SecurityException(e);
-        }
+        return new AuthorizationCodeInstalledApp(flow, receiver, this).authorize("user");
     }
 }

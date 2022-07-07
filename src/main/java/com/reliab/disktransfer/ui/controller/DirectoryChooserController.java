@@ -46,6 +46,10 @@ public class DirectoryChooserController {
             field.setText(directory);
         }
 
+        writeDirectoryToFile();
+    }
+
+    private void writeDirectoryToFile() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter("src/main/resources/directory/"))){
             writer.write(directory);
         } catch (IOException e) {
@@ -57,7 +61,7 @@ public class DirectoryChooserController {
     public void initialize() {
         this.browse.setOnAction(actionEvent -> {
             chooseFile();
-           pages.switchToTransfer(actionEvent);
+            this.pages.switchToTransfer(actionEvent);
         });
     }
 }

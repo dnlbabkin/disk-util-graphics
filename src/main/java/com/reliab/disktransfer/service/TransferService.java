@@ -31,6 +31,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TransferService extends Task<List<File>> {
 
+    private final int[] i = {0};
+
     private final YandexProperties yandexAuthProperties;
     private final GoogleProperties googleAuthProperties;
 
@@ -140,18 +142,16 @@ public class TransferService extends Task<List<File>> {
     @Override
     public List<File> call() {
         List<File> fileId = getFileList();
-
         int count = fileId.size();
-        int i = 0;
 
         createFolder();
-        for (File fileIds : fileId) {
+
+        fileId.forEach(fileIds -> {
             this.transferringFiles(fileIds);
             fileOperations(fileIds);
-
-            i++;
-            this.updateProgress(i, count);
-        }
+            i[0]++;
+            this.updateProgress(i[0], count);
+        });
 
         return fileId;
     }

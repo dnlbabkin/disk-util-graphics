@@ -60,15 +60,6 @@ public class YandexAuthService {
         return restClient;
     }
 
-    private void logging() {
-        restClient = getRestClient();
-        try {
-            log.info(String.valueOf(restClient.getFlatResourceList(RESOURCES_ARGS)));
-        } catch (Exception e) {
-            log.warn("Cannot create client");
-        }
-    }
-
     private void tokenProcessing(String code) {
         String token = exchangeCodeToToken(code)
                 .map(Token::getAccessToken)
@@ -111,6 +102,15 @@ public class YandexAuthService {
                 Token.class
         );
         return Optional.ofNullable(responseEntity.getBody());
+    }
+
+    public void logging() {
+        restClient = getRestClient();
+        try {
+            log.info(String.valueOf(restClient.getFlatResourceList(RESOURCES_ARGS)));
+        } catch (Exception e) {
+            log.warn("Cannot create client");
+        }
     }
 
     public void browse() {

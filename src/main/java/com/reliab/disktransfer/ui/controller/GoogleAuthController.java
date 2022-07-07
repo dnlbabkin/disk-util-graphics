@@ -24,8 +24,8 @@ public class GoogleAuthController {
     @FXML
     public void initialize() {
         this.googleAuth.setOnAction(actionEvent -> {
-            googleAuthService.getFileListFromGoogleDrive();
-            pages.switchToYandexAuthPage(actionEvent);
+            this.googleAuthService.getFileListFromGoogleDrive();
+            this.pages.switchToYandexAuthPage(actionEvent);
         });
     }
 }
