@@ -5,13 +5,11 @@ import com.google.api.services.drive.model.FileList;
 import com.reliab.disktransfer.component.GoogleAuth;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.List;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class GoogleService {
