@@ -27,6 +27,7 @@ public class TransferController {
     @FXML
     public Label complete;
 
+
     private void fileTransfer() {
         progressBar.progressProperty().unbind();
         progressBar.progressProperty().bind(transferService.progressProperty());

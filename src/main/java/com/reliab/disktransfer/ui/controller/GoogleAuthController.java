@@ -1,7 +1,7 @@
 package com.reliab.disktransfer.ui.controller;
 
 import com.reliab.disktransfer.component.SceneCreator;
-import com.reliab.disktransfer.service.GoogleAuthService;
+import com.reliab.disktransfer.service.GoogleService;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class GoogleAuthController {
 
-    private final GoogleAuthService googleAuthService;
+    private final GoogleService googleAuthService;
     private final SceneCreator pages;
 
     @FXML
@@ -24,7 +24,7 @@ public class GoogleAuthController {
     @FXML
     public void initialize() {
         this.googleAuth.setOnAction(actionEvent -> {
-            this.googleAuthService.getFileListFromGoogleDrive();
+            this.googleAuthService.getFileList();
             this.pages.switchToYandexAuthPage(actionEvent);
         });
     }

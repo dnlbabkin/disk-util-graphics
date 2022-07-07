@@ -13,11 +13,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class CallbackHandlerController {
 
+    public static final String RETURNED_MESSAGE = "Received verification code. You may now close this window.";
+
     private final YandexAuthService yandexAuthService;
 
     @GetMapping("/yandex/token")
     public String handleCallback(@RequestParam String code) {
-        yandexAuthService.handleToken(code);
-        return "Received verification code. You may now close this window.";
+        yandexAuthService.processCode(code);
+        return RETURNED_MESSAGE;
     }
 }

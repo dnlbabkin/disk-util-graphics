@@ -16,6 +16,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Optional;
 
 @Slf4j
 @Component
@@ -38,7 +39,8 @@ public class DirectoryChooserController {
     private void chooseFile() {
         final DirectoryChooser chooser = new DirectoryChooser();
         Stage window = (Stage) anchor.getScene().getWindow();
-        File file = chooser.showDialog(window);
+        File file = Optional.ofNullable(chooser.showDialog(window))
+                .orElseThrow(() -> new RuntimeException("Directory wasn't chosen"));
 
         if (file != null) {
             log.info("Path: " + file.getAbsolutePath());

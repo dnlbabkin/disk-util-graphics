@@ -42,7 +42,6 @@ public class YandexAuthController {
     public void initialize() {
         this.yandexAuth.setOnAction(actionEvent -> {
             browse();
-            this.yandexAuthService.logging();
             this.pages.switchToDirectoryChooser(actionEvent);
         });
     }
