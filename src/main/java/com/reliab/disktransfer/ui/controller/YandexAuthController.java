@@ -19,14 +19,14 @@ import java.io.File;
 public class YandexAuthController {
 
     private final YandexAuthService yandexAuthService;
-    private final YandexProperties yandexAuthProperties;
+    private final YandexProperties yandexProperties;
     private final SceneCreator pages;
 
     @FXML
     public Button yandexAuth;
 
     private void browse() {
-        File tokenDirectoryPath = new File(yandexAuthProperties.getYandexTokensDirPath());
+        File tokenDirectoryPath = new File(yandexProperties.getYandexTokensDirPath());
         if (!tokenDirectoryPath.exists()) {
             this.yandexAuthService.browse();
             try {

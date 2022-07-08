@@ -45,8 +45,8 @@ public class GoogleAuth implements AuthorizationCodeInstalledApp.Browser {
         }
         GoogleClientSecrets clientSecrets =  GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(inputStream));
 
-        GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
-                httpTransport, JSON_FACTORY, clientSecrets, SCOPES)
+        GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(httpTransport, JSON_FACTORY,
+                clientSecrets, SCOPES)
                 .setDataStoreFactory(new FileDataStoreFactory(new File(properties.getGoogleTokensDirPath())))
                 .setAccessType("offline")
                 .build();
@@ -57,10 +57,10 @@ public class GoogleAuth implements AuthorizationCodeInstalledApp.Browser {
 
     @SneakyThrows({GeneralSecurityException.class, IOException.class})
     public Drive getDrive() {
-        final NetHttpTransport httpTransport;
-        httpTransport = GoogleNetHttpTransport.newTrustedTransport();
+        final NetHttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
         return new Drive.Builder(httpTransport,
-                JSON_FACTORY, getCredentials(httpTransport))
+                JSON_FACTORY,
+                getCredentials(httpTransport))
                 .setApplicationName(properties.getGoogleAppName())
                 .build();
     }

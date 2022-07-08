@@ -15,8 +15,8 @@ public class JavafxApplication extends Application {
 
     private ConfigurableApplicationContext context;
 
-    private static final int WIDTH = 513;
-    private static final int HEIGHT = 243;
+    public static final int WIDTH = 513;
+    public static final int HEIGHT = 243;
 
     public void browser(String url) {
         getHostServices().showDocument(url);

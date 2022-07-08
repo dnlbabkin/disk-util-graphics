@@ -12,15 +12,14 @@ import lombok.RequiredArgsConstructor;
 import net.rgielen.fxweaver.core.FxWeaver;
 import org.springframework.stereotype.Component;
 
+import static com.reliab.disktransfer.ui.JavafxApplication.HEIGHT;
+import static com.reliab.disktransfer.ui.JavafxApplication.WIDTH;
+
 @Component
 @RequiredArgsConstructor
 public class SceneCreator {
 
     private final FxWeaver fxWeaver;
-
-    private static final int WIDTH = 513;
-    private static final int HEIGHT = 243;
-
 
     private void sceneCreation(ActionEvent actionEvent, Class<?> controllerClass) {
         Parent root = fxWeaver.loadView(controllerClass);
