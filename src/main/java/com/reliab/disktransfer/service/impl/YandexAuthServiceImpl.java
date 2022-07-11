@@ -26,16 +26,18 @@ public class YandexAuthServiceImpl implements YandexAuthService {
 
     private final RestTemplate template;
     private final YandexProperties yandexProperties;
+    private final JavafxApplication javafxApplication;
 
     public YandexAuthServiceImpl(@Qualifier("yandexRestTemplate") RestTemplate template,
-                                 YandexProperties yandexAuthProperties) {
+                                 YandexProperties yandexAuthProperties,
+                                 JavafxApplication javafxApplication) {
         this.template = template;
         this.yandexProperties = yandexAuthProperties;
+        this.javafxApplication = javafxApplication;
     }
 
     @Override
     public void browse() {
-        JavafxApplication javafxApplication = new JavafxApplication();
         javafxApplication.browser(yandexProperties.getRedirectUri());
     }
 

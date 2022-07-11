@@ -40,8 +40,8 @@ public class TransferService extends Task<List<File>> {
         createFolder();
 
         fileId.forEach(fileIds -> {
-            this.transferringFiles(fileIds);
-            fileOperations(fileIds);
+            this.showTransferProgress(fileIds);
+            filesProcessing(fileIds);
             i[0]++;
             this.updateProgress(i[0], count);
         });
@@ -49,12 +49,12 @@ public class TransferService extends Task<List<File>> {
         return fileId;
     }
 
-    private void transferringFiles(File file) {
+    private void showTransferProgress(File file) {
         this.updateMessage("Переносится: " + file.getName());
         try {
             Thread.sleep(500);
         } catch (InterruptedException e) {
-            log.warn("Interrupted!", e);
+            log.warn("Interrupted!");
             Thread.currentThread().interrupt();
         }
     }
@@ -67,7 +67,7 @@ public class TransferService extends Task<List<File>> {
         }
     }
 
-    private void fileOperations(File fileIds) {
+    private void filesProcessing(File fileIds) {
         downloadFiles(fileIds);
         uploadFiles(fileIds, getRestClient());
         try {
@@ -80,7 +80,7 @@ public class TransferService extends Task<List<File>> {
     }
 
     private void downloadFiles(File fileIds) {
-        String directory = getDirectory();
+        String directory = readDirectory();
         try(OutputStream outputStream = new FileOutputStream(directory + "/" + fileIds.getName())) {
             googleAuth.getDrive().files().get(fileIds.getId())
                     .executeAndDownloadTo(outputStream);
@@ -93,7 +93,7 @@ public class TransferService extends Task<List<File>> {
         try {
             Link link = restClient.getUploadLink(fileIds.getName(), true);
 
-            String directory = getDirectory();
+            String directory = readDirectory();
 
             restClient.uploadFile(link, true,
                     new java.io.File(directory, fileIds.getName()), null);
@@ -103,12 +103,11 @@ public class TransferService extends Task<List<File>> {
     }
 
     private RestClient getRestClient() {
-        String token = getTokenFromFile();
+        String token = readTokenFromFile();
         return new RestClient(new Credentials(null, token));
     }
 
-
-    private String getTokenFromFile() {
+    private String readTokenFromFile() {
         Path fileName = Path.of(yandexAuthProperties.getYandexTokensDirPath());
         try {
             return Files.readString(fileName);
@@ -118,7 +117,7 @@ public class TransferService extends Task<List<File>> {
         return null;
     }
 
-    private String getDirectory() {
+    private String readDirectory() {
         Path name = Path.of("src/main/resources/directory/");
         try {
             return Files.readString(name);

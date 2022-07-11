@@ -26,6 +26,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class GoogleAuth implements AuthorizationCodeInstalledApp.Browser {
 
+    private final JavafxApplication javafxApplication;
+
     private static final GsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
     private static final List<String> SCOPES = Collections.singletonList(DriveScopes.DRIVE);
 
@@ -33,7 +35,6 @@ public class GoogleAuth implements AuthorizationCodeInstalledApp.Browser {
 
     @Override
     public void browse(String url) {
-        JavafxApplication javafxApplication = new JavafxApplication();
         javafxApplication.browser(url);
     }
 
