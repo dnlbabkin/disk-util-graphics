@@ -38,15 +38,26 @@ public class TransferService extends Task<List<File>> {
         int count = fileId.size();
 
         createFolder();
+        countProgress(fileId, count);
 
+        return fileId;
+    }
+
+    private void createFolder() {
+        try {
+            getRestClient().makeFolder(googleAuthProperties.getDownloadFolderName());
+        } catch (ServerIOException | IOException e) {
+            log.warn("Cannot create folder");
+        }
+    }
+
+    private void countProgress(List<File> fileId, int count) {
         fileId.forEach(fileIds -> {
             this.showTransferProgress(fileIds);
             filesProcessing(fileIds);
             i[0]++;
             this.updateProgress(i[0], count);
         });
-
-        return fileId;
     }
 
     private void showTransferProgress(File file) {
@@ -56,14 +67,6 @@ public class TransferService extends Task<List<File>> {
         } catch (InterruptedException e) {
             log.warn("Interrupted!");
             Thread.currentThread().interrupt();
-        }
-    }
-
-    private void createFolder() {
-        try {
-            getRestClient().makeFolder(googleAuthProperties.getDownloadFolderName());
-        } catch (ServerIOException | IOException e) {
-            log.warn("Cannot create folder");
         }
     }
 

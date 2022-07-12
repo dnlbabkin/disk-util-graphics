@@ -29,12 +29,6 @@ public class YandexAuthController {
         File tokenDirectoryPath = new File(yandexProperties.getYandexTokensDirPath());
         if (!tokenDirectoryPath.exists()) {
             this.yandexAuthService.browse();
-            try {
-                Thread.sleep(10000);
-            } catch (InterruptedException e) {
-                log.warn("Thread was interrupted");
-                Thread.currentThread().interrupt();
-            }
         }
     }
 

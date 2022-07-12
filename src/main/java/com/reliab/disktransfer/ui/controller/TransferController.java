@@ -1,6 +1,7 @@
 package com.reliab.disktransfer.ui.controller;
 
 import com.google.api.services.drive.model.File;
+import com.reliab.disktransfer.service.FilesNumberProgressService;
 import com.reliab.disktransfer.service.GoogleService;
 import com.reliab.disktransfer.service.TransferService;
 import javafx.concurrent.WorkerStateEvent;
@@ -10,11 +11,13 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.rgielen.fxweaver.core.FxmlView;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+@Slf4j
 @Component
 @FxmlView("/fxml/TransferPage.fxml")
 @RequiredArgsConstructor
@@ -22,6 +25,8 @@ public class TransferController {
 
     private final TransferService transferService;
     private final GoogleService googleService;
+    private final FilesNumberProgressService progressService;
+
 
     @FXML
     public ProgressBar progressBar;
@@ -41,7 +46,6 @@ public class TransferController {
     private void fileTransfer() {
         progressBar.progressProperty().unbind();
         progressBar.progressProperty().bind(transferService.progressProperty());
-        numberOfFiles.textProperty().unbind();
 
         if(googleService.getFileList().isEmpty()) {
             actionIfDiskIsEmpty();
@@ -59,7 +63,7 @@ public class TransferController {
     }
 
     private void actionIfDiskIsNotEmpty() {
-        numberOfFiles.setText("Общее количество файлов на диске: " + googleService.getFileList().size());
+        numberOfFiles.textProperty().bind(progressService.messageProperty());
         numberOfFiles.setAlignment(Pos.CENTER);
         progress.textProperty().bind(transferService.messageProperty());
         transfer.setDisable(true);
@@ -70,6 +74,7 @@ public class TransferController {
                     progress.setText("Выполнено: " + downloaded.size());
                     transfer.setDisable(true);
                 });
+        new Thread(progressService).start();
         new Thread(transferService).start();
     }
 }

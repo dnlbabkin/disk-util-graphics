@@ -45,7 +45,7 @@ public class YandexAuthServiceImpl implements YandexAuthService {
     public void processCode(String code) {
         String token = exchangeCodeToToken(code)
                 .map(Token::getAccessToken)
-                .orElseThrow(() -> new TokenProcessingException("Not token"));
+                .orElseThrow(() -> new TokenProcessingException("No token"));
         saveToFile(token);
     }
 
