@@ -27,6 +27,8 @@ public class TransferController {
     private final GoogleService googleService;
     private final FilesNumberProgressService progressService;
 
+    private List<File> downloaded;
+    private int downloadProgress;
 
     @FXML
     public ProgressBar progressBar;
@@ -69,7 +71,7 @@ public class TransferController {
         transfer.setDisable(true);
         transferService.addEventHandler(WorkerStateEvent.WORKER_STATE_SUCCEEDED,
                 event -> {
-                    List<File> downloaded = transferService.getValue();
+                    downloaded = transferService.getValue();
                     progress.textProperty().unbind();
                     progress.setText("Выполнено: " + downloaded.size());
                     transfer.setDisable(true);

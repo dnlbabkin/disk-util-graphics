@@ -86,7 +86,7 @@ public class TransferService extends Task<List<File>> {
         String directory = readDirectory();
         try(OutputStream outputStream = new FileOutputStream(directory + "/" + fileIds.getName())) {
             googleAuth.getDrive().files().get(fileIds.getId())
-                    .executeAndDownloadTo(outputStream);
+                    .executeMediaAndDownloadTo(outputStream);
         } catch (IOException e) {
             log.warn("Cannot download files");
         }
