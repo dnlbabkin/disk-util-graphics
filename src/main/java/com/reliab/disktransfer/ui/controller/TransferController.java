@@ -28,7 +28,6 @@ public class TransferController {
     private final FilesNumberProgressService progressService;
 
     private List<File> downloaded;
-    private int downloadProgress;
 
     @FXML
     public ProgressBar progressBar;
@@ -47,7 +46,7 @@ public class TransferController {
 
     private void fileTransfer() {
         progressBar.progressProperty().unbind();
-        progressBar.progressProperty().bind(transferService.progressProperty());
+        progressBar.progressProperty().bind(progressService.progressProperty());
 
         if(googleService.getFileList().isEmpty()) {
             actionIfDiskIsEmpty();

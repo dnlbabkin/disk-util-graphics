@@ -43,6 +43,18 @@ public class TransferService extends Task<List<File>> {
         return fileId;
     }
 
+    public void filesProcessing(File fileIds) {
+        downloadFiles(fileIds);
+        uploadFiles(fileIds, getRestClient());
+        try {
+            getRestClient().move(fileIds.getName(),
+                    googleAuthProperties.getDownloadFolderName()
+                            + "/" + fileIds.getName(), true);
+        } catch (Exception e) {
+            log.warn("Cannot move file to a directory");
+        }
+    }
+
     private void createFolder() {
         try {
             getRestClient().makeFolder(googleAuthProperties.getDownloadFolderName());
@@ -70,18 +82,6 @@ public class TransferService extends Task<List<File>> {
         }
     }
 
-    private void filesProcessing(File fileIds) {
-        downloadFiles(fileIds);
-        uploadFiles(fileIds, getRestClient());
-        try {
-            getRestClient().move(fileIds.getName(),
-                    googleAuthProperties.getDownloadFolderName()
-                            + "/" + fileIds.getName(), true);
-        } catch (Exception e) {
-            log.warn("Cannot move file to a directory");
-        }
-    }
-
     private void downloadFiles(File fileIds) {
         String directory = readDirectory();
         try(OutputStream outputStream = new FileOutputStream(directory + "/" + fileIds.getName())) {
@@ -101,7 +101,7 @@ public class TransferService extends Task<List<File>> {
             restClient.uploadFile(link, true,
                     new java.io.File(directory, fileIds.getName()), null);
         } catch (ServerException | IOException e) {
-            log.warn("Cannot upload link or upload file");
+            log.warn("Cannot upload link");
         }
     }
 
