@@ -4,6 +4,7 @@ import com.google.api.services.drive.model.File;
 import com.reliab.disktransfer.configuration.properties.YandexProperties;
 import com.reliab.disktransfer.component.GoogleAuth;
 import com.reliab.disktransfer.configuration.properties.GoogleProperties;
+import com.reliab.disktransfer.ui.controller.DirectoryChooserController;
 import com.yandex.disk.rest.Credentials;
 import com.yandex.disk.rest.RestClient;
 import com.yandex.disk.rest.exceptions.ServerException;
@@ -30,6 +31,7 @@ public class TransferService extends Task<List<File>> {
     private final GoogleProperties googleAuthProperties;
     private final GoogleService googleService;
     private final GoogleAuth googleAuth;
+    private final DirectoryChooserController directoryChooserController;
 
 
     @Override
@@ -43,9 +45,14 @@ public class TransferService extends Task<List<File>> {
         return fileId;
     }
 
-    public void filesProcessing(File fileIds) {
-        downloadFiles(fileIds);
-        uploadFiles(fileIds, getRestClient());
+    public void filesProcessing(File fileIds)  {
+        boolean check = new java.io.File(directoryChooserController.getDirectory(), fileIds.getName()).exists();
+        if(check) {
+            log.warn("File already exist!");
+        } else {
+            downloadFiles(fileIds);
+            uploadFiles(fileIds, getRestClient());
+        }
         try {
             getRestClient().move(fileIds.getName(),
                     googleAuthProperties.getDownloadFolderName()
@@ -85,8 +92,7 @@ public class TransferService extends Task<List<File>> {
     private void downloadFiles(File fileIds) {
         String directory = readDirectory();
         try(OutputStream outputStream = new FileOutputStream(directory + "/" + fileIds.getName())) {
-            googleAuth.getDrive().files().get(fileIds.getId())
-                    .executeMediaAndDownloadTo(outputStream);
+            googleAuth.getDrive().files().get(fileIds.getId()).executeMediaAndDownloadTo(outputStream);
         } catch (IOException e) {
             log.warn("Cannot download files");
         }
@@ -95,11 +101,10 @@ public class TransferService extends Task<List<File>> {
     private void uploadFiles(File fileIds, RestClient restClient) {
         try {
             Link link = restClient.getUploadLink(fileIds.getName(), true);
-
             String directory = readDirectory();
-
             restClient.uploadFile(link, true,
-                    new java.io.File(directory, fileIds.getName()), null);
+                        new java.io.File(directory, fileIds.getName()), null);
+
         } catch (ServerException | IOException e) {
             log.warn("Cannot upload link");
         }

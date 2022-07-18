@@ -7,6 +7,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.rgielen.fxweaver.core.FxmlView;
@@ -22,6 +23,7 @@ import java.util.Optional;
 @Component
 @FxmlView("/fxml/DirectoryChooserPage.fxml")
 @RequiredArgsConstructor
+@Getter
 public class DirectoryChooserController {
 
     private final SceneCreator pages;
