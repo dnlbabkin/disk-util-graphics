@@ -46,13 +46,8 @@ public class TransferService extends Task<List<File>> {
     }
 
     public void filesProcessing(File fileIds)  {
-        boolean check = new java.io.File(directoryChooserController.getDirectory(), fileIds.getName()).exists();
-        if(check) {
-            log.warn("File already exist!");
-        } else {
-            downloadFiles(fileIds);
-            uploadFiles(fileIds, getRestClient());
-        }
+        downloadFiles(fileIds);
+        uploadFiles(fileIds, getRestClient());
         try {
             getRestClient().move(fileIds.getName(),
                     googleAuthProperties.getDownloadFolderName()
@@ -72,10 +67,16 @@ public class TransferService extends Task<List<File>> {
 
     private void countProgress(List<File> fileId, int count) {
         fileId.forEach(fileIds -> {
-            this.showTransferProgress(fileIds);
-            filesProcessing(fileIds);
-            i[0]++;
-            this.updateProgress(i[0], count);
+            boolean check = new java.io.File(directoryChooserController.getDirectory(), fileIds.getName()).exists();
+            if(check){
+                this.updateMessage(fileIds.getName() + " уже существует");
+                log.warn("File already exist");
+            } else {
+                this.showTransferProgress(fileIds);
+                filesProcessing(fileIds);
+                i[0]++;
+                this.updateProgress(i[0], count);
+            }
         });
     }
 
