@@ -1,6 +1,7 @@
 package com.reliab.disktransfer.ui.controller;
 
 import com.google.api.services.drive.model.File;
+import com.reliab.disktransfer.component.SceneCreator;
 import com.reliab.disktransfer.service.FilesNumberProgressService;
 import com.reliab.disktransfer.service.GoogleService;
 import com.reliab.disktransfer.service.TransferService;
@@ -26,6 +27,7 @@ public class TransferController {
     private final TransferService transferService;
     private final GoogleService googleService;
     private final FilesNumberProgressService progressService;
+    private final SceneCreator pages;
 
     private List<File> downloaded;
 
@@ -37,11 +39,14 @@ public class TransferController {
     public Label progress;
     @FXML
     public Label numberOfFiles;
+    @FXML
+    public Button mainPage;
 
 
     @FXML
     public void initialize() {
         this.transfer.setOnAction(actionEvent -> fileTransfer());
+        this.mainPage.setOnAction(this.pages::switchToGoogleAuthPage);
     }
 
     private void fileTransfer() {
@@ -73,6 +78,8 @@ public class TransferController {
                     downloaded = transferService.getValue();
                     progress.textProperty().unbind();
                     progress.setText("Выполнено: " + downloaded.size());
+                    progressBar.progressProperty().unbind();
+                    progressBar.setProgress(0);
                     transfer.setDisable(true);
                 });
         new Thread(progressService).start();

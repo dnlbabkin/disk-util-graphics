@@ -1,6 +1,7 @@
 package com.reliab.disktransfer.component;
 
 import com.reliab.disktransfer.ui.controller.DirectoryChooserController;
+import com.reliab.disktransfer.ui.controller.GoogleAuthController;
 import com.reliab.disktransfer.ui.controller.TransferController;
 import com.reliab.disktransfer.ui.controller.YandexAuthController;
 import javafx.event.ActionEvent;
@@ -27,6 +28,10 @@ public class SceneCreator {
         Scene scene = new Scene(root, WIDTH, HEIGHT);
         stage.setScene(scene);
         stage.show();
+    }
+
+    public void switchToGoogleAuthPage(ActionEvent actionEvent) {
+        sceneCreation(actionEvent, GoogleAuthController.class);
     }
 
     public void switchToYandexAuthPage(ActionEvent actionEvent) {
