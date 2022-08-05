@@ -2,7 +2,6 @@ package com.reliab.disktransfer.ui.controller;
 
 import com.google.api.services.drive.model.File;
 import com.reliab.disktransfer.component.SceneCreator;
-import com.reliab.disktransfer.service.FilesNumberProgressService;
 import com.reliab.disktransfer.service.GoogleService;
 import com.reliab.disktransfer.service.TransferService;
 import javafx.concurrent.WorkerStateEvent;
@@ -18,6 +17,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+
 @Slf4j
 @Component
 @FxmlView("/fxml/TransferPage.fxml")
@@ -26,7 +26,6 @@ public class TransferController {
 
     private final TransferService transferService;
     private final GoogleService googleService;
-    private final FilesNumberProgressService progressService;
     private final SceneCreator pages;
 
     private List<File> downloaded;
@@ -35,8 +34,6 @@ public class TransferController {
     public ProgressBar progressBar;
     @FXML
     public Button transfer;
-    @FXML
-    public Label progress;
     @FXML
     public Label numberOfFiles;
     @FXML
@@ -51,7 +48,7 @@ public class TransferController {
 
     private void fileTransfer() {
         progressBar.progressProperty().unbind();
-        progressBar.progressProperty().bind(progressService.progressProperty());
+        progressBar.progressProperty().bind(transferService.progressProperty());
 
         if(googleService.getFileList().isEmpty()) {
             actionIfDiskIsEmpty();
@@ -69,20 +66,19 @@ public class TransferController {
     }
 
     private void actionIfDiskIsNotEmpty() {
-        numberOfFiles.textProperty().bind(progressService.messageProperty());
         numberOfFiles.setAlignment(Pos.CENTER);
-        progress.textProperty().bind(transferService.messageProperty());
+        numberOfFiles.textProperty().bind(transferService.messageProperty());
         transfer.setDisable(true);
         transferService.addEventHandler(WorkerStateEvent.WORKER_STATE_SUCCEEDED,
                 event -> {
                     downloaded = transferService.getValue();
-                    progress.textProperty().unbind();
-                    progress.setText("Выполнено: " + downloaded.size());
+                    numberOfFiles.textProperty().unbind();
+                    numberOfFiles.setText("Выполнено: " + downloaded.size());
                     progressBar.progressProperty().unbind();
                     progressBar.setProgress(0);
                     transfer.setDisable(true);
+                    transferService.cancel();
                 });
-        new Thread(progressService).start();
         new Thread(transferService).start();
     }
 }

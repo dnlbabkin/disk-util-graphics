@@ -21,7 +21,8 @@ public class GoogleServiceImpl implements GoogleService {
     @Override
     public List<File> getFileList() {
         FileList result = googleAuth.getDrive().files().list()
-                    .setFields("nextPageToken, files(id, name)")
+                    .setQ("'root' in parents and trashed = false")
+                    .setFields("nextPageToken, files(id, name, mimeType)")
                     .execute();
         return result.getFiles();
     }

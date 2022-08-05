@@ -15,6 +15,7 @@ import com.reliab.disktransfer.configuration.properties.GoogleProperties;
 import com.reliab.disktransfer.ui.JavafxApplication;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
@@ -22,6 +23,7 @@ import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.List;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class GoogleAuth implements AuthorizationCodeInstalledApp.Browser {

@@ -6,7 +6,7 @@
 <?import javafx.scene.text.Font?>
 
 
-<AnchorPane prefHeight="243.0" prefWidth="513.0" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.reliab.disktransfer.ui.controller.YandexAuthController">
+<AnchorPane prefHeight="257.0" prefWidth="513.0" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.reliab.disktransfer.ui.controller.YandexAuthController">
    <children>
       <Label layoutX="152.0" layoutY="14.0" text="ШАГ 2 ИЗ 4">
          <font>

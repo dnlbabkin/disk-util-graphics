@@ -37,6 +37,13 @@ public class DirectoryChooserController {
     @FXML
     public AnchorPane anchor;
 
+    @FXML
+    public void initialize() {
+        this.browse.setOnAction(actionEvent -> {
+            chooseFile();
+            this.pages.switchToTransfer(actionEvent);
+        });
+    }
 
     private void chooseFile() {
         final DirectoryChooser chooser = new DirectoryChooser();
@@ -59,13 +66,5 @@ public class DirectoryChooserController {
         } catch (IOException e) {
             log.warn("Directory cannot write to file");
         }
-    }
-
-    @FXML
-    public void initialize() {
-        this.browse.setOnAction(actionEvent -> {
-            chooseFile();
-            this.pages.switchToTransfer(actionEvent);
-        });
     }
 }

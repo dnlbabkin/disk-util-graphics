@@ -72,7 +72,7 @@ public class TransferService extends Task<List<File>> {
                 this.updateMessage(fileIds.getName() + " уже существует");
                 log.warn("File already exist");
             } else {
-                this.showTransferProgress(fileIds);
+                this.showTransferProgress(fileIds, count);
                 filesProcessing(fileIds);
                 i[0]++;
                 this.updateProgress(i[0], count);
@@ -80,8 +80,9 @@ public class TransferService extends Task<List<File>> {
         });
     }
 
-    private void showTransferProgress(File file) {
-        this.updateMessage("Переносится: " + file.getName());
+    private void showTransferProgress(File file, int count) {
+        this.updateMessage("Общее количество файлов: "
+                + (count - i[0]) + "\n" + "Переносится: " + file.getName());
         try {
             Thread.sleep(500);
         } catch (InterruptedException e) {
@@ -90,7 +91,7 @@ public class TransferService extends Task<List<File>> {
         }
     }
 
-    private void downloadFiles(File fileIds) {
+    public void downloadFiles(File fileIds) {
         String directory = readDirectory();
         try(OutputStream outputStream = new FileOutputStream(directory + "/" + fileIds.getName())) {
             googleAuth.getDrive().files().get(fileIds.getId()).executeMediaAndDownloadTo(outputStream);
@@ -99,19 +100,18 @@ public class TransferService extends Task<List<File>> {
         }
     }
 
-    private void uploadFiles(File fileIds, RestClient restClient) {
+    public void uploadFiles(File fileIds, RestClient restClient) {
         try {
             Link link = restClient.getUploadLink(fileIds.getName(), true);
             String directory = readDirectory();
             restClient.uploadFile(link, true,
                         new java.io.File(directory, fileIds.getName()), null);
-
         } catch (ServerException | IOException e) {
             log.warn("Cannot upload link");
         }
     }
 
-    private RestClient getRestClient() {
+    public RestClient getRestClient() {
         String token = readTokenFromFile();
         return new RestClient(new Credentials(null, token));
     }
@@ -137,3 +137,5 @@ public class TransferService extends Task<List<File>> {
         return null;
     }
 }
+
+

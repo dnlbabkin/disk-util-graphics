@@ -25,18 +25,18 @@ public class YandexAuthController {
     @FXML
     public Button yandexAuth;
 
-    private void browse() {
-        File tokenDirectoryPath = new File(yandexProperties.getYandexTokensDirPath());
-        if (!tokenDirectoryPath.exists()) {
-            this.yandexAuthService.browse();
-        }
-    }
-
     @FXML
     public void initialize() {
         this.yandexAuth.setOnAction(actionEvent -> {
             browse();
             this.pages.switchToDirectoryChooser(actionEvent);
         });
+    }
+
+    private void browse() {
+        File tokenDirectoryPath = new File(yandexProperties.getYandexTokensDirPath());
+        if (!tokenDirectoryPath.exists()) {
+            this.yandexAuthService.browse();
+        }
     }
 }
