@@ -13,8 +13,11 @@ import javafx.scene.control.ProgressBar;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.rgielen.fxweaver.core.FxmlView;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.stereotype.Component;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
 
@@ -27,8 +30,9 @@ public class TransferController {
     private final TransferService transferService;
     private final GoogleService googleService;
     private final SceneCreator pages;
+    private final DirectoryChooserController directoryChooserController;
+    private final ConfigurableApplicationContext context;
 
-    private List<File> downloaded;
 
     @FXML
     public ProgressBar progressBar;
@@ -43,13 +47,20 @@ public class TransferController {
     @FXML
     public void initialize() {
         this.transfer.setOnAction(actionEvent -> fileTransfer());
-        this.mainPage.setOnAction(this.pages::switchToGoogleAuthPage);
+        this.mainPage.setOnAction(actionEvent -> {
+            transferService.cancel(true);
+            if (transferService.isCancelled()) {
+                log.info("task was cancelled");
+            } else {
+                log.info("task was not cancelled");
+            }
+            this.pages.switchToGoogleAuthPage(actionEvent);
+        });
     }
 
     private void fileTransfer() {
         progressBar.progressProperty().unbind();
         progressBar.progressProperty().bind(transferService.progressProperty());
-
         if(googleService.getFileList().isEmpty()) {
             actionIfDiskIsEmpty();
         } else {
@@ -66,19 +77,24 @@ public class TransferController {
     }
 
     private void actionIfDiskIsNotEmpty() {
+        Thread thread = new Thread(transferService);
         numberOfFiles.setAlignment(Pos.CENTER);
         numberOfFiles.textProperty().bind(transferService.messageProperty());
         transfer.setDisable(true);
-        transferService.addEventHandler(WorkerStateEvent.WORKER_STATE_SUCCEEDED,
-                event -> {
-                    downloaded = transferService.getValue();
-                    numberOfFiles.textProperty().unbind();
-                    numberOfFiles.setText("Выполнено: " + downloaded.size());
-                    progressBar.progressProperty().unbind();
-                    progressBar.setProgress(0);
-                    transfer.setDisable(true);
-                    transferService.cancel();
-                });
-        new Thread(transferService).start();
+        transferService.addEventHandler(WorkerStateEvent.WORKER_STATE_SUCCEEDED, event -> successState());
+        thread.start();
+    }
+
+    private void successState() {
+        List<File> downloaded = transferService.getValue();
+        numberOfFiles.textProperty().unbind();
+        if (!Files.exists(Path.of(directoryChooserController.getDirectory()))) {
+            numberOfFiles.setText("Файлы не передались, отсутствует директория");
+        } else {
+            numberOfFiles.setText("Выполнено: " + downloaded.size());
+        }
+        progressBar.progressProperty().unbind();
+        progressBar.setProgress(0);
+        transfer.setDisable(true);
     }
 }

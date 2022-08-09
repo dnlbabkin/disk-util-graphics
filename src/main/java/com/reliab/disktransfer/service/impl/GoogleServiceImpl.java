@@ -20,7 +20,7 @@ public class GoogleServiceImpl implements GoogleService {
     @SneakyThrows(IOException.class)
     @Override
     public List<File> getFileList() {
-        FileList result = googleAuth.getDrive().files().list()
+        FileList result = googleAuth.getDrive().list()
                     .setQ("'root' in parents and trashed = false")
                     .setFields("nextPageToken, files(id, name, mimeType)")
                     .execute();

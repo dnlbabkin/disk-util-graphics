@@ -37,6 +37,7 @@ public class TransferService extends Task<List<File>> {
     @Override
     public List<File> call() {
         List<File> fileId = googleService.getFileList();
+        log.info("inside call");
         int count = fileId.size();
 
         createFolder();
@@ -67,9 +68,10 @@ public class TransferService extends Task<List<File>> {
 
     private void countProgress(List<File> fileId, int count) {
         fileId.forEach(fileIds -> {
+            log.info("countProgress" + fileIds.getName());
             boolean check = new java.io.File(directoryChooserController.getDirectory(), fileIds.getName()).exists();
             if(check){
-                this.updateMessage(fileIds.getName() + " уже существует");
+                updateMessage(fileIds.getName() + " уже существует");
                 log.warn("File already exist");
             } else {
                 this.showTransferProgress(fileIds, count);
@@ -94,7 +96,7 @@ public class TransferService extends Task<List<File>> {
     public void downloadFiles(File fileIds) {
         String directory = readDirectory();
         try(OutputStream outputStream = new FileOutputStream(directory + "/" + fileIds.getName())) {
-            googleAuth.getDrive().files().get(fileIds.getId()).executeMediaAndDownloadTo(outputStream);
+            googleAuth.getDrive().get(fileIds.getId()).executeMediaAndDownloadTo(outputStream);
         } catch (IOException e) {
             log.warn("Cannot download files");
         }

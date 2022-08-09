@@ -59,12 +59,12 @@ public class GoogleAuth implements AuthorizationCodeInstalledApp.Browser {
     }
 
     @SneakyThrows({GeneralSecurityException.class, IOException.class})
-    public Drive getDrive() {
+    public Drive.Files getDrive() {
         final NetHttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
         return new Drive.Builder(httpTransport,
                 JSON_FACTORY,
                 getCredentials(httpTransport))
                 .setApplicationName(properties.getGoogleAppName())
-                .build();
+                .build().files();
     }
 }
